@@ -1,6 +1,6 @@
 const path = require('path');
 
-const { packageMSIX } = require("../lib/index.mjs");
+const { packageMSIX } = require("../lib/index.ms");
 
 // packageMSIX({
 //   appDir:  path.join(__dirname, '..\\test\\fixtures\\app-x64'),

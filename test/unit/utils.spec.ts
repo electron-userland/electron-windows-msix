@@ -175,6 +175,8 @@ describe('utils', () => {
       vi.mocked(log.error).mockClear();
       vi.mocked(log.warn).mockClear();
       vi.mocked(fs.exists).mockClear();
+      delete process.env.WINDOWS_CERTIFICATE_PASSWORD;
+      delete process.env.WINDOWS_CERTIFICATE_FILE;
     });
 
     describe('manifest variables', () => {
@@ -441,7 +443,7 @@ describe('utils', () => {
           } as any,
         }
         await verifyOptions(packagingOptions);
-        expect(log.warn).toHaveBeenCalledWith('Path to cert <certificateFile> and cert password <certificatePassword> not provided. A dev cert will be created with a random password and the package will be signed with it!');
+        expect(log.warn).toHaveBeenCalledWith('Path to cert <certificateFile> and cert password <certificatePassword> or environment variable WINDOWS_CERTIFICATE_PASSWORD not provided. A dev cert will be created with a random password and the package will be signed with it!');
       });
 
       it('it should warn if no certificate file but a password is provided in windows sign options', async () => {
@@ -452,7 +454,18 @@ describe('utils', () => {
           } as any,
         }
         await verifyOptions(packagingOptions);
-        expect(log.warn).toHaveBeenCalledWith('Path to cert <cert> not provided. A dev cert will be created with the provided password and the package will be signed with it!');
+        expect(log.warn).toHaveBeenCalledWith('Path to cert <certificateFile> or environment variable WINDOWS_CERTIFICATE_FILE not provided. A dev cert will be created with the provided password and the package will be signed with it!');
+      });
+
+      it('it should warn if no certificate file but a password is provided via environment variable', async () => {
+        const packagingOptions: PackagingOptions = {
+          ...minimalPackagingOptions,
+          windowsSignOptions: {
+          } as any,
+        }
+        process.env.WINDOWS_CERTIFICATE_PASSWORD = '123456';
+        await verifyOptions(packagingOptions);
+        expect(log.warn).toHaveBeenCalledWith('Path to cert <certificateFile> or environment variable WINDOWS_CERTIFICATE_FILE not provided. A dev cert will be created with the provided password and the package will be signed with it!');
       });
 
       it('it should warn a certificate file is provided the file does not exist', async () => {
@@ -492,6 +505,34 @@ describe('utils', () => {
 
         await verifyOptions(packagingOptions);
         expect(log.warn).not.toHaveBeenCalledWith('Neither path to application <appDir> nor files <files> provided in windows sign options. Will add MSIX package to files.');
+      });
+
+      it('it should not warn if a certificate file is provided  no password is provided but the environment variable WINDOWS_CERTIFICATE_PASSWORD is set', async () => {
+        const packagingOptions: PackagingOptions = {
+          ...minimalPackagingOptions,
+          windowsSignOptions: {
+            certificateFile: 'C:\\cert.pfx',
+          } as any,
+        }
+        process.env.WINDOWS_CERTIFICATE_PASSWORD = '123456';
+        vi.mocked(fs.exists).mockResolvedValue(false as any);
+        await verifyOptions(packagingOptions);
+
+        expect(log.warn).not.toHaveBeenCalledWith('Cert password <certificatePassword> not provided.');
+      });
+
+      it('it should not warn if a certificate file is provided if a password is provided via windows sign options', async () => {
+        const packagingOptions: PackagingOptions = {
+          ...minimalPackagingOptions,
+          windowsSignOptions: {
+            certificateFile: 'C:\\cert.pfx',
+            certificatePassword: '123456',
+          } as any,
+        }
+        vi.mocked(fs.exists).mockResolvedValue(false as any);
+        await verifyOptions(packagingOptions);
+
+        expect(log.warn).not.toHaveBeenCalledWith('Cert password <certificatePassword> not provided.');
       });
 
     });

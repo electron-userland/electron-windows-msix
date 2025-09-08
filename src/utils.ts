@@ -99,10 +99,10 @@ export const verifyOptions = async (options: PackagingOptions, manifestVars?: Ma
       log.warn('Neither path to application <appDir> nor files <files> provided in windows sign options. Will add MSIX package to files.');
     }
 
-    if(!windowsSignOptions?.certificateFile && windowsSignOptions?.certificatePassword) log.warn('Path to cert <cert> not provided. A dev cert will be created with the provided password and the package will be signed with it!');
-    if(!windowsSignOptions?.certificateFile && !windowsSignOptions?.certificatePassword) log.warn('Path to cert <certificateFile> and cert password <certificatePassword> not provided. A dev cert will be created with a random password and the package will be signed with it!');
+    if((!windowsSignOptions?.certificateFile && !process.env.WINDOWS_CERTIFICATE_FILE) && (windowsSignOptions?.certificatePassword || process.env.WINDOWS_CERTIFICATE_PASSWORD)) log.warn('Path to cert <certificateFile> or environment variable WINDOWS_CERTIFICATE_FILE not provided. A dev cert will be created with the provided password and the package will be signed with it!');
+    if(!windowsSignOptions?.certificateFile && (!windowsSignOptions?.certificatePassword && !process.env.WINDOWS_CERTIFICATE_PASSWORD)) log.warn('Path to cert <certificateFile> and cert password <certificatePassword> or environment variable WINDOWS_CERTIFICATE_PASSWORD not provided. A dev cert will be created with a random password and the package will be signed with it!');
     if(windowsSignOptions?.certificateFile && !(await fs.exists(windowsSignOptions?.certificateFile))) log.error('Path to cert <certificateFile> does not exist.', true, { certificateFile: windowsSignOptions?.certificateFile });
-    if(windowsSignOptions?.certificateFile && !windowsSignOptions?.certificatePassword) log.warn('Cert password <certificatePassword> not provided.');
+    if(windowsSignOptions?.certificateFile && !windowsSignOptions?.certificatePassword && !process.env.WINDOWS_CERTIFICATE_PASSWORD) log.warn('Cert password <certificatePassword> not provided.');
     if(windowsSignOptions?.certificateFile && windowsSignOptions?.certificatePassword) {
       const certPublisher = await getCertPublisher(windowsSignOptions?.certificateFile, windowsSignOptions?.certificatePassword);
       if(publisher != certPublisher) log.error('The publisher in the manifest must match the publisher of the cert', false, {manifest_publisher: publisher, cert_publisher: certPublisher});
@@ -228,10 +228,11 @@ export const makeProgramOptions = async (options: PackagingOptions, manifestVars
   let cert_pfx = windowsSignOptions?.certificateFile || '';
   let cert_cer = '';
   let cert_pass = '';
-  const createDevCert = !options.windowsSignOptions?.certificateFile && sign;
+
+  const createDevCert = sign && !options.windowsSignOptions?.certificateFile && !process.env.WINDOWS_CERTIFICATE_FILE;
   if(sign) {
     windowsSignOptions = options.windowsSignOptions || {files: [msix], certificateFile: '', certificatePassword: '', hashes: ["sha256"] as any };
-    cert_pass = windowsSignOptions?.certificatePassword || generatePassword();
+    cert_pass = windowsSignOptions?.certificatePassword || process.env.WINDOWS_CERTIFICATE_PASSWORD || generatePassword();
     if (!windowsSignOptions.hashes || windowsSignOptions.hashes.length === 0) {
       windowsSignOptions.hashes = ['sha256'] as any;
     }
