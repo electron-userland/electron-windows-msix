@@ -35,6 +35,7 @@ jobs:
           path: coverage
 
       - name: Comment PR with coverage
+        if: github.event_name == 'pull_request'
         uses: romeovs/lcov-reporter-action@2a28ec3e25fb7eae9cb537e9141603486f810d1a
         with:
           title: Unit Tests Coverage Report
