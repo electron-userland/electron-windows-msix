@@ -10,7 +10,7 @@
   <Identity Name="{{IdentityName}}"
           ProcessorArchitecture="{{ProcessorArchitecture}}"
           Version="{{Version}}"
-          Publisher="CN={{PublisherName}}"/>
+          Publisher="CN=&quot;{{PublisherName}}&quot;"/>
   <Properties>
     <DisplayName>{{DisplayName}}</DisplayName>
     <PublisherDisplayName>{{PublisherDisplayName}}</PublisherDisplayName>
