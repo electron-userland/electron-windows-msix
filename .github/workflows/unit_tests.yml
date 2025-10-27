@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version: '22'
 
@@ -29,16 +29,7 @@ jobs:
         run: yarn test:unit:coverage
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: coverage-report
           path: coverage
-
-      - name: Comment PR with coverage
-        if: github.event_name == 'pull_request'
-        uses: romeovs/lcov-reporter-action@2a28ec3e25fb7eae9cb537e9141603486f810d1a
-        with:
-          title: Unit Tests Coverage Report
-          lcov-file: coverage/lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          delete-old-comments: true
