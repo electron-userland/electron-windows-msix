@@ -143,7 +143,9 @@ await packageMSIX({
 
 ## Local Development
 
-* Running the local tests requires [PowerShell 7](https://learn.microsoft.com/en-us/powershell/?view=powershell-7.5)
+* Running the local E2E tests requires:
+  * [PowerShell 7](https://learn.microsoft.com/en-us/powershell/?view=powershell-7.5)
+  * [Windows 11 SDK 10.0.26100.0](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/)
 
 ----
 #### [MIT License (MIT)](LICENSE) | Copyright (c) Jan Hannemann.
