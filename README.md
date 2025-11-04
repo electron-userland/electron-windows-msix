@@ -13,7 +13,7 @@ Electron-Windows-MSIX is a module that lets you create an MSIX installer from a 
 ### Installation
 
 ```
-npm install electron-windows-msix
+npm install electron-windows-msix --save-dev
 ```
 
 ## Usage
@@ -53,7 +53,7 @@ packageMinOSVersion       - The minimum OS version the MSIX package requires. Th
 packageMaxOSVersionTested - The maximum OS version the MSIX package has been tested on. This will be used to set the MaxVersionTested attribute in the TargetDeviceFamily element in the AppxManifest.xml.
 ```
 
-#### Minimal example that creates a manifest and a dev cert
+### Minimal example that creates a manifest and a dev cert
 ```ts
 import { packageMSIX } from "electron-windows-msix";
 
@@ -70,7 +70,7 @@ await packageMSIX({
 });
 ```
 
-#### Minimal example that derives all possible data from the Manifest
+### Minimal example that derives all possible data from the Manifest
 ```ts
 import { packageMSIX } from "electron-windows-msix";
 
@@ -86,7 +86,7 @@ await packageMSIX({
 });
 ```
 
-#### Example that controls all options with via manifest varaibles
+### Example that controls all options with via manifest varaibles
 ```js
 import { packageMSIX } from "electron-windows-msix";
 
@@ -120,7 +120,7 @@ await packageMSIX({
 });
 ```
 
-#### Example that controls all options with an existing manifest
+### Example that controls all options with an existing manifest
 ```ts
 import { packageMSIX } from "electron-windows-msix";
 
@@ -140,6 +140,10 @@ await packageMSIX({
   }
 });
 ```
+
+## Local Development
+
+* Running the local tests requires [PowerShell 7](https://learn.microsoft.com/en-us/powershell/?view=powershell-7.5)
 
 ----
 #### [MIT License (MIT)](LICENSE) | Copyright (c) Jan Hannemann.
