@@ -107,7 +107,9 @@ describe('manifestation', () => {
       expect(appManifestIn).toMatch(/<Identity Name="com.electron.myapp"/);
       expect(appManifestIn).toMatch(/ProcessorArchitecture="x64"/);
       expect(appManifestIn).toMatch(/Version="1.42.0.0"/);
-      expect(appManifestIn).toMatch(/Publisher="CN=Jan Hannemann"\/>/);
+      expect(appManifestIn).toMatch(
+        /Publisher="CN=&quot;Jan Hannemann&quot;"\/>/
+      );
       expect(appManifestIn).toMatch(/<DisplayName>HelloMSIX<\/DisplayName>/);
       expect(appManifestIn).toMatch(/<PublisherDisplayName>Jan Hannemann<\/PublisherDisplayName>/);
       expect(appManifestIn).toMatch(/<Logo>assets\\icon.png<\/Logo>/);
