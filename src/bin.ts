@@ -28,12 +28,24 @@ const  run = async (executable: string, args: Array<string>)  => {
     });
 
     proc.on('exit', (code: number) => {
-      log.debug(`Output from ${executable}:`, cleanOutData(stdout));
-      if (code !== 0) {
-        log.error(`Output from ${executable}:`, false, cleanOutData(stdout))
-        return reject(new Error(`Failed running ${executable} Exit Code: ${code} See previous errors for details`))
+      if (code === 0) {
+        log.debug(`stdout of ${executable}`, cleanOutData(stdout));
+        return resolve(stdout);
+      } else {
+        if (stderr !== '') {
+          log.error(`stderr of ${executable}`, false, cleanOutData(stderr));
+        }
+
+        if (stdout !== '') {
+          log.error(`stdout of ${executable}`, false, cleanOutData(stdout));
+        }
+        return reject(
+          new Error(
+            `Failed running ${executable} Exit Code: ${code} See previous errors for details`
+          )
+        );
+
       }
-      return resolve(stdout);
     });
 
     proc.stdin.end();
