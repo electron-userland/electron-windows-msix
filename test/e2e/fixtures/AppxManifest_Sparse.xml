@@ -8,7 +8,7 @@
          xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
          IgnorableNamespaces="uap uap2 uap3 rescap desktop uap10">
     <Identity Name="hellomsix.Sparse"
-              Publisher="CN=Electron MSIX"
+              Publisher="CN=&quot;Electron MSIX&quot;"
               ProcessorArchitecture="x64"
               Version="1.2.3.4" />
     <Properties>

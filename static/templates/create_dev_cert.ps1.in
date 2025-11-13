@@ -1,5 +1,5 @@
 # Customize these values
-$subjectName = 'CN={{SubjectName}}'
+$subjectName = 'CN="{{SubjectName}}"'
 $friendlyName = 'ELECTRON WINDOWS MSIX Dev Cert ($subjectName)'
 $yearsValid = 99
 $pfxPasswordPlain = '{{Password}}' # Use a strong password

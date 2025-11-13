@@ -8,7 +8,7 @@
          xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
          IgnorableNamespaces="uap uap2 uap3 rescap desktop uap10">
     <Identity Name="Electron.20.0.Sparse"
-              Publisher="CN=Electron"
+              Publisher="CN=&quot;Electron&quot;"
               ProcessorArchitecture="x64"
               Version="1.0.0.0" />
     <Properties>

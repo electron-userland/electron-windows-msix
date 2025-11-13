@@ -10,7 +10,7 @@
 <Identity Name="Electron.MySuite.HelloMSIX"
           ProcessorArchitecture="arm64"
           Version="1.2.3.4"
-          Publisher="CN=Electron MSIX"/>
+          Publisher="CN=&quot;Electron MSIX&quot;"/>
   <Properties>
     <DisplayName>HelloMSIX App</DisplayName>
     <PublisherDisplayName>Electron</PublisherDisplayName>

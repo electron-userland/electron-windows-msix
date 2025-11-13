@@ -48,7 +48,7 @@ describe('manifestation', () => {
       expect(manifestVars.manifestAppName).toBe('hellomsix');
       expect(manifestVars.manifestPackageArch).toBe('x64');
       expect(manifestVars.manifestIsSparsePackage).toBe(false);
-      expect(manifestVars.manifestPublisher).toBe('CN=Electron');
+      expect(manifestVars.manifestPublisher).toBe('CN="Electron"');
       expect(manifestVars.manifestOsMinVersion).toBe('10.0.17763.0');
     });
 
@@ -95,7 +95,7 @@ describe('manifestation', () => {
       expect(appManifestIn).toMatch(/<Identity Name="Electron.MySuite.HelloMSIX"/);
       expect(appManifestIn).toMatch(/ProcessorArchitecture="x64"/);
       expect(appManifestIn).toMatch(/Version="1.0.0.0"/);
-      expect(appManifestIn).toMatch(/Publisher="CN=Electron"\/>/);
+      expect(appManifestIn).toMatch(/Publisher="CN=&quot;Electron&quot;"\/>/);
       expect(appManifestIn).toMatch(/<DisplayName>HelloMSIX App<\/DisplayName>/);
       expect(appManifestIn).toMatch(/<PublisherDisplayName>Electron<\/PublisherDisplayName>/);
       expect(appManifestIn).toMatch(/<Logo>assets\\icon.png<\/Logo>/);

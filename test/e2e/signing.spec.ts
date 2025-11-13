@@ -36,7 +36,7 @@ describe('signing', () => {
 
     it('should the cert should have the correct subject', async () => {
       const certSubject = await getCertSubject(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
-      expect(certSubject).toBe('CN=Electron MSIX')
+      expect(certSubject).toBe('CN="Electron MSIX"')
     });
 
     it('should not sign the app if sign is set to false', async () => {
@@ -141,7 +141,7 @@ describe('signing', () => {
 
     it('should have the correct subject', async () => {
       const certSubject = await getCertSubject(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
-      expect(certSubject).toBe('CN=Dev Publisher')
+      expect(certSubject).toBe('CN="Dev Publisher"')
     });
 
     it('should use the generated dev cert with the provided password via environment variables', async () => {
