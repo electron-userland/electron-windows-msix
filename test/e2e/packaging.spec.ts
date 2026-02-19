@@ -326,4 +326,15 @@ describe('packaging', () => {
     }
     expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(false);
   });
+
+  it('should package without compression', async () => {
+     await packageMSIX({
+      appDir: path.join(__dirname, 'fixtures', 'app-x64'),
+      outputDir: path.join(__dirname, '..', '..', 'out'),
+      appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_x64.xml'),
+      windowsKitVersion: '10.0.26100.0',
+      compress: false,
+    });
+    expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
+  });
 });

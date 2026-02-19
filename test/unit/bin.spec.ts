@@ -175,6 +175,7 @@ describe('bin', () => {
       layoutDir: 'C:\\layoutDir',
       msix: 'C:\\msix',
       isSparsePackage: false,
+      compress: true,
     } as any);
     expect(spawn).toHaveBeenCalledWith('C:\\makeappx.exe', ['pack', '/d', 'C:\\layoutDir', '/p', 'C:\\msix', '/o'], {});
   });
@@ -185,8 +186,20 @@ describe('bin', () => {
       layoutDir: 'C:\\layoutDir',
       msix: 'C:\\msix',
       isSparsePackage: true,
+      compress: true,
     } as any);
     expect(spawn).toHaveBeenCalledWith('C:\\makeappx.exe', ['pack', '/d', 'C:\\layoutDir', '/p', 'C:\\msix', '/o', '/nv'], {});
+  });
+
+  it('should call make with the correct arguments for an uncompressed package', async () => {
+    await make({
+      makeMsix: 'C:\\makeappx.exe',
+      layoutDir: 'C:\\layoutDir',
+      msix: 'C:\\msix',
+      isSparsePackage: false,
+      compress: false,
+    } as any);
+    expect(spawn).toHaveBeenCalledWith('C:\\makeappx.exe', ['pack', '/d', 'C:\\layoutDir', '/p', 'C:\\msix', '/o', '/nc'], {});
   });
 
   it('should call sign with the correct arguments', async () => {

@@ -1027,6 +1027,7 @@ describe('utils', () => {
       cert_pass: expect.any(String),
       createPri: true,
       isSparsePackage: false,
+      compress: true,
       sign: true,
     } as any;
 
@@ -1158,6 +1159,24 @@ describe('utils', () => {
         ...defaultExpectedProgramOptions,
         windowsSignOptions: defaultExpectedWindowsSignOptions,
         createPri: false });
+    });
+
+    it('should disable compression if compress is false', async () => {
+      const packagingOptions: PackagingOptions = {
+        ...minimalPackagingOptions,
+        manifestVariables: {
+          targetArch: 'x64',
+          publisher: 'Electron',
+          packageVersion: '1.2.3',
+        } as any,
+        compress: false,
+      }
+      vi.mocked(fs.pathExists).mockResolvedValueOnce(true as any);
+      const programOptions = await makeProgramOptions(packagingOptions);
+      expect(programOptions).toStrictEqual({
+        ...defaultExpectedProgramOptions,
+        windowsSignOptions: defaultExpectedWindowsSignOptions,
+        compress: false });
     });
 
     it('should use the sign params if provided', async () => {

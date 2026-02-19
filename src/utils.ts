@@ -230,6 +230,7 @@ export const makeProgramOptions = async (options: PackagingOptions, manifestVars
   const priConfig = path.join(layoutDir, 'priconfig.xml');
   const priFile =  path.join(layoutDir, 'resources.pri');
   const createPri = options.createPri !== undefined ? options.createPri : true;
+  const compress = options.compress !== undefined ? options.compress : true;
   const publisher = options.manifestVariables?.publisher || manifestPublisher || '';
   const sign = options.sign !== undefined ? options.sign : true;
   let windowsSignOptions: WindowsSignOptions
@@ -284,6 +285,7 @@ export const makeProgramOptions = async (options: PackagingOptions, manifestVars
     priFile,
     createPri,
     isSparsePackage,
+    compress,
     sign,
     windowsSignOptions,
     createDevCert,

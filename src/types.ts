@@ -134,6 +134,8 @@ export interface PackagingOptions {
   windowsKitPath ? : string;
   /** Indicates whether to create Pri resource files. It will be enabled by default. */
   createPri ? : boolean;
+  /** Indicates whether to compress package files. It will be enabled by default. */
+  compress ? : boolean;
   /**
    * Indicates whether to sign the MSIX package. It will be enabled by default. If cert or signParams are not provided then the package will be signed with a dev cert.
    * If sign is false then the package will not be signed.
@@ -170,6 +172,7 @@ export interface ProgramOptions {
   priConfig: string;
   priFile: string;
   isSparsePackage: boolean;
+  compress: boolean;
   sign: boolean;
   windowsSignOptions: WindowsSignOptions;
   createDevCert: boolean;
