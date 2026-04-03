@@ -115,6 +115,20 @@ describe('signing', () => {
       const certStatus = await getCertStatus(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
       expect(certStatus).toBe('Valid');
     });
+
+    it('should sign the app when windowsSignOptions is set without certificateFile and both cert and password are from env vars', async () => {
+      process.env.WINDOWS_CERTIFICATE_FILE = path.join(__dirname, 'fixtures', 'MSIXDevCert.pfx');
+      process.env.WINDOWS_CERTIFICATE_PASSWORD = 'Password123';
+      await packageMSIX({
+        appDir: path.join(__dirname, 'fixtures', 'app-x64'),
+        outputDir: path.join(__dirname, '..', '..', 'out'),
+        appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_x64.xml'),
+        windowsSignOptions: {} as any,
+      });
+      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
+      const certStatus = await getCertStatus(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
+      expect(certStatus).toBe('Valid');
+    });
   });
 
   describe('signing with a generated dev cert', () => {

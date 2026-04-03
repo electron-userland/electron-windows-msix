@@ -1247,7 +1247,7 @@ describe('utils', () => {
       });
     });
 
-    it('should create a dev cert with the provided sign password', async () => {
+    it('should not create a dev cert when windowsSignOptions is provided without certificateFile', async () => {
       const packagingOptions: PackagingOptions = {
         ...minimalPackagingOptions,
         windowsSignOptions: {
@@ -1264,14 +1264,15 @@ describe('utils', () => {
       expect(programOptions).toStrictEqual({
         ...defaultExpectedProgramOptions,
         windowsSignOptions: {
-          ...defaultExpectedWindowsSignOptions,
           certificatePassword: 'password',
+          files: ["C:\\out\\app_x64.msix"],
+          hashes: ['sha256'] as any,
         },
         publisher: 'Electron',
-        cert_pfx: 'C:\\out\\dev_cert.pfx',
-        cert_cer: 'C:\\out\\dev_cert.cer',
+        cert_pfx: '',
+        cert_cer: '',
         cert_pass: 'password',
-        createDevCert: true,
+        createDevCert: false,
       });
     });
 
@@ -1309,6 +1310,28 @@ describe('utils', () => {
         msix: 'C:\\out\\app.msix',
         publisher: '',
       });
+    });
+
+    it('should not create a dev cert when WINDOWS_CERTIFICATE_FILE env var is set', async () => {
+      process.env.WINDOWS_CERTIFICATE_FILE = 'C:\\cert.pfx';
+      try {
+        vi.mocked(fs.pathExists).mockResolvedValueOnce(true as any);
+        const programOptions = await makeProgramOptions(minimalPackagingOptions);
+        expect(programOptions).toStrictEqual({
+          ...defaultExpectedProgramOptions,
+          windowsSignOptions: {
+            files: ["C:\\out\\app_x64.msix"],
+            certificateFile: '',
+            certificatePassword: expect.any(String),
+            hashes: ['sha256'] as any,
+          },
+          cert_pfx: '',
+          cert_cer: '',
+          createDevCert: false,
+        });
+      } finally {
+        delete process.env.WINDOWS_CERTIFICATE_FILE;
+      }
     });
 
     it('should not sign the package if sign is false', async () => {
