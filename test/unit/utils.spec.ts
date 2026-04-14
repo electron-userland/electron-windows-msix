@@ -1133,11 +1133,12 @@ describe('utils', () => {
       expect(programOptions).toStrictEqual({
         ...defaultExpectedProgramOptions,
         windowsSignOptions: {
-          certificateFile: "C:\\out\\dev_cert.pfx",
-          certificatePassword: expect.any(String),
           hashes: ['sha256'] as any,
           appDirectory: 'C:\\app',
         },
+        cert_pfx: '',
+        cert_cer: '',
+        createDevCert: false,
         msix: 'C:\\out\\MySuperApp_arm64.msix'
       });
     });
@@ -1177,9 +1178,13 @@ describe('utils', () => {
       expect(programOptions).toStrictEqual({
         ...defaultExpectedProgramOptions,
         windowsSignOptions: {
-          ...defaultExpectedWindowsSignOptions,
+          files: ["C:\\out\\app_x64.msix"],
+          hashes: ['sha256'] as any,
           signWithParams: ['1', '2', '3'],
         },
+        cert_pfx: '',
+        cert_cer: '',
+        createDevCert: false,
         sign: true });
     });
 
