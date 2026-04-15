@@ -337,4 +337,17 @@ describe('packaging', () => {
     });
     expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
   });
+
+  it('should package the app with an user-provided priconfig.xml', async () => {
+    await packageMSIX({
+      appDir: path.join(__dirname, 'fixtures', 'app-x64'),
+      outputDir: path.join(__dirname, '..', '..', 'out'),
+      appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_x64.xml'),
+      packageAssets: path.join(__dirname, 'fixtures', 'assets'),
+      createPri: true,
+      priConfig: path.join(__dirname, 'fixtures', 'priconfig.xml'),
+      windowsKitVersion: '10.0.26100.0',
+    });
+    expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
+  });
 });

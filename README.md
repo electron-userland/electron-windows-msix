@@ -30,6 +30,7 @@ npm install electron-windows-msix --save-dev
                       WindowsKitPath is provided then the Windows Kit path will be derived from the S Version specified in AppManifest.xml.
   windowsKitPath     - An optional full path to the WindowsKit. This path will trump both WindowsKitVersion and AppxManifest.
   createPri          - Indicates whether to create Pri resource files. It is enabled by default.
+  priConfig          - Optional path to priconfig.xml. If not set then one will be generated with `makepri createconfig`. Does nothing when createPri is false.
   sign               - Optional parameter that indicates whether the MSIX should be signed. True by default.
   windowsSignOptions - Optional parameter for `@electron/windows-sign`, missing will be filled in. See https://github.com/electron/windows-sign for details
   logLevel           - Optional log level. By default the module will be silent. The 'warn' level will give heads up on irregularities.

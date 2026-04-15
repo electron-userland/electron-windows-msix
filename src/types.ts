@@ -134,6 +134,8 @@ export interface PackagingOptions {
   windowsKitPath ? : string;
   /** Indicates whether to create Pri resource files. It will be enabled by default. */
   createPri ? : boolean;
+  /** Optional path to priconfig.xml. If not set then one will be generated with `makepri createconfig`. Does nothing when createPri is false.*/
+  priConfig ? : string;
   /** Indicates whether to compress package files. It will be enabled by default. */
   compress ? : boolean;
   /**
@@ -169,7 +171,8 @@ export interface ProgramOptions {
   cert_cer: string;
   cert_pass: string;
   createPri: boolean;
-  priConfig: string;
+  createPriConfig: boolean;
+  priConfigPath: string;
   priFile: string;
   isSparsePackage: boolean;
   compress: boolean;

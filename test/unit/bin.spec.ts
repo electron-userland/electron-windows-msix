@@ -135,7 +135,8 @@ describe('bin', () => {
   it('should call priConfig with the correct arguments', async () => {
    await priConfig({
       makePri: 'C:\\makepri.exe',
-      priConfig: 'C:\\priConfig.xml',
+      createPriConfig: true,
+      priConfigPath: 'C:\\priConfig.xml',
       createPri: true,
     } as any);
     expect(spawn).toHaveBeenCalledWith('C:\\makepri.exe', ['createconfig', '/cf', 'C:\\priConfig.xml', '/dq', 'en-US'], {});
@@ -144,8 +145,18 @@ describe('bin', () => {
   it('should call priConfig with the correct arguments', async () => {
     await priConfig({
       makePri: 'C:\\makepri.exe',
-      priConfig: 'C:\\priConfig.xml',
+      priConfigPath: 'C:\\priConfig.xml',
       createPri: false,
+    } as any);
+    expect(spawn).not.toHaveBeenCalled();
+  });
+
+  it('should call priConfig with the correct arguments', async () => {
+    await priConfig({
+      makePri: 'C:\\makepri.exe',
+      priConfigPath: 'C:\\priConfig.xml',
+      createPri: true,
+      createPriConfig: false,
     } as any);
     expect(spawn).not.toHaveBeenCalled();
   });
@@ -153,7 +164,7 @@ describe('bin', () => {
   it('should call pri with the correct arguments', async () => {
     await pri({
       makePri: 'C:\\makepri.exe',
-      priConfig: 'C:\\priConfig.xml',
+      priConfigPath: 'C:\\priConfig.xml',
       layoutDir: 'C:\\layoutDir',
       priFile: 'C:\\priFile.xml',
       appManifestLayout: 'C:\\appManifestLayout.xml',

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<resources majorVersion="1" targetOsVersion="10.0.0">
+    <index root="\" startIndexAt="\">
+        <default>
+            <qualifier name="AlternateForm" value="" />
+            <qualifier name="Language" value="en" />
+            <qualifier name="Scale" value="100" />
+            <qualifier name="TargetSize" value="256" />
+        </default>
+        <indexer-config
+            filenameAsQualifier="true"
+            foldernameAsQualifier="false"
+            qualifierDelimiter="."
+            type="folder"
+        />
+    </index>
+</resources>

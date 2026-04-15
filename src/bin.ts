@@ -67,21 +67,23 @@ export const getCertPublisher = async (cert: string, cert_pass: string) => {
 }
 
 export const priConfig = async (program: ProgramOptions) => {
-  const { makePri, priConfig, createPri } = program;
-  if(createPri) {
-    const args = ['createconfig', '/cf', priConfig, '/dq', 'en-US'];
+  const { makePri, priConfigPath, createPriConfig, createPri } = program;
+  if (!createPri) {
+    log.debug('Skipping making pri config because pri creation is disabled.');
+  } else if(!createPriConfig) {
+    log.debug('Skipping making pri config because user provides their own pri config.');
+  } else {
+    const args = ['createconfig', '/cf', priConfigPath, '/dq', 'en-US'];
     log.debug('Creating pri config.')
     await run(makePri, args);
-  } else {
-    log.debug('Skipping making pri config.');
   }
 }
 
 export const pri = async (program: ProgramOptions) => {
-  const { makePri, priConfig, layoutDir, priFile, appManifestLayout, createPri } = program;
+  const { makePri, priConfigPath, layoutDir, priFile, appManifestLayout, createPri } = program;
   if(createPri) {
     log.debug('Making pri.')
-    const args = ['new', '/pr', layoutDir, '/cf', priConfig, '/mn', appManifestLayout, '/of', priFile, '/v'];
+    const args = ['new', '/pr', layoutDir, '/cf', priConfigPath, '/mn', appManifestLayout, '/of', priFile, '/v'];
     await run(makePri, args);
   } else {
     log.debug('Skipping making pri.');
