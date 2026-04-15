@@ -1,9 +1,12 @@
+import path from 'node:path';
+import tls from 'node:tls';
+
 import { sign as windowsSign } from '@electron/windows-sign';
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getCertPublisher, make, pri, priConfig, sign } from "../../src/bin";
+import { getCertPublisher, make, pri, priConfig, exportedRunForVitest, sign } from "../../src/bin";
 import { log } from '../../src/logger';
 
 vi.mock('child_process', () => ({
@@ -37,15 +40,12 @@ describe('bin', () => {
   beforeEach(() => {
     vi.mocked(windowsSign).mockClear();
     vi.mocked(spawn).mockClear();
+    vi.mocked(log.error).mockClear();
   });
 
-  it('should return the publisher from the cert', async () => {
+  it('should return stdout when process succeeds', async () => {
+    const stdoutData = 'hello electron-windows-msix';
     vi.mocked(spawn).mockImplementationOnce((_, __) => {
-      const stdoutData = `
-      NotAfter: 12/7/2024 7:01 PM
-      Subject: CN=Electron
-      Signature matches Public Key
-      `;
       const emitter = new EventEmitter() as any;
       setImmediate(() => {
         emitter.stdout.emit('data', Buffer.from(stdoutData));
@@ -57,16 +57,21 @@ describe('bin', () => {
       emitter.stdin = { end: vi.fn() };
       return emitter;
     });
-    const result = await getCertPublisher('C:\\cert.pfx', 'password');
-    expect(spawn).toHaveBeenCalledWith('certutil', ['-p', 'password', '-dump', 'C:\\cert.pfx'], {});
-    expect(result).toBe('CN=Electron');
+    const executable = 'some_executable';
+    const args = ['arg1', 'arg2', 'arg3', 'arg4'];
+    const result = await exportedRunForVitest(executable, args);
+    expect(spawn).toHaveBeenCalledWith(executable, args, {});
+    expect(result).toBe(stdoutData);
   });
 
-  it('should log an error if the certutil command fails', async () => {
+  it('should print stdout and stderr then reject when process fails', async () => {
+    const stdoutData = 'error stdout';
+    const stderrData = 'error stderr';
     vi.mocked(spawn).mockImplementationOnce(() => {
       const emitter = new EventEmitter() as any;
       setImmediate(() => {
-        emitter['stderr'].emit('data', Buffer.from('certutil: Error: oops'));
+        emitter.stdout.emit('data', Buffer.from(stdoutData));
+        emitter.stderr.emit('data', Buffer.from(stderrData));
         emitter.emit('exit', 1, null);
       });
 
@@ -75,16 +80,17 @@ describe('bin', () => {
       emitter.stdin = { end: vi.fn() };
       return emitter;
     });
-    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow('Failed running certutil Exit Code: 1 See previous errors for details');
-    expect(log.error).toHaveBeenCalledWith('stderr of certutil', false, ['certutil: Error: oops']);
+    const executable = 'some_executable';
+    const args = ['arg1', 'arg2', 'arg3', 'arg4'];
+    await expect(exportedRunForVitest(executable, args)).rejects.toThrow(`Failed running ${executable} Exit Code: 1 See previous errors for details`);
+    expect(log.error).toHaveBeenCalledWith(`stderr of ${executable}`, false, [stderrData]);
+    expect(log.error).toHaveBeenCalledWith(`stdout of ${executable}`, false, [stdoutData]);
   });
 
-  it('should log stdout when process exits with non-zero code and stdout is non-empty', async () => {
+  it('should directly reject when process fails and stdout and stderr are empty', async () => {
     vi.mocked(spawn).mockImplementationOnce(() => {
       const emitter = new EventEmitter() as any;
       setImmediate(() => {
-        emitter.stdout.emit('data', Buffer.from('some stdout output\n'));
-        emitter.stderr.emit('data', Buffer.from('stderr message'));
         emitter.emit('exit', 1, null);
       });
 
@@ -93,43 +99,38 @@ describe('bin', () => {
       emitter.stdin = { end: vi.fn() };
       return emitter;
     });
-    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow('Failed running certutil Exit Code: 1 See previous errors for details');
-    expect(log.error).toHaveBeenCalledWith('stdout of certutil', false, ['some stdout output', '']);
+    const executable = 'some_executable';
+    const args = ['arg1', 'arg2', 'arg3', 'arg4'];
+    await expect(exportedRunForVitest(executable, args)).rejects.toThrow();
+    expect(log.error).not.toHaveBeenCalled();
   });
 
-  it('should not log stderr when process exits with non-zero code and stderr is empty', async () => {
-    vi.mocked(log.error).mockClear();
-    vi.mocked(spawn).mockImplementationOnce(() => {
-      const emitter = new EventEmitter() as any;
-      setImmediate(() => {
-        emitter.stdout.emit('data', Buffer.from('stdout only\n'));
-        emitter.emit('exit', 1, null);
-      });
-
-      emitter.stdout = new EventEmitter();
-      emitter.stderr = new EventEmitter();
-      emitter.stdin = { end: vi.fn() };
-      return emitter;
-    });
-    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow('Failed running certutil Exit Code: 1 See previous errors for details');
-    expect(log.error).not.toHaveBeenCalledWith('stderr of certutil', expect.anything(), expect.anything());
-    expect(log.error).toHaveBeenCalledWith('stdout of certutil', false, ['stdout only', '']);
+  it('should return the publisher from the cert', async () => {
+    const certPath = path.join(__dirname, '..', 'e2e', 'fixtures', 'MSIXDevCert.pfx');
+    const result = await getCertPublisher(certPath, 'Password123');
+    expect(result).toBe('CN=Electron MSIX');
   });
 
-  it('should log an error if no publisher is found in the cert', async () => {
-    vi.mocked(spawn).mockImplementationOnce((_, __) => {
-      const emitter = new EventEmitter() as any;
-      setImmediate(() => {
-        emitter.stdout.emit('data', Buffer.from(''));
-        emitter.emit('exit', 0, null);
-      });
-      emitter.stdout = new EventEmitter();
-      emitter.stderr = new EventEmitter();
-      emitter.stdin = { end: vi.fn() };
-      return emitter;
-    });
-    await getCertPublisher('C:\\cert.pfx', 'password');
-    expect(log.error).toHaveBeenCalledWith('Unable to find publisher in Cert');
+  it('should log an error if password is incorrect', async () => {
+    const certPath = path.join(__dirname, '..', 'e2e', 'fixtures', 'MSIXDevCert.pfx');
+    const result = await getCertPublisher(certPath, 'Very wrong password');
+    expect(result).toBeNull();
+    expect(log.error).toHaveBeenCalledWith('Unable to parse certificate', false, expect.anything());
+  });
+
+  it('should log an error if the file is not a valid PFX', async () => {
+    const obviouslyNotAPfx = path.join(__dirname, 'fixtures', 'AppxManifest_invalid.xml');
+    const result = await getCertPublisher(obviouslyNotAPfx, 'Password123');
+    expect(result).toBeNull();
+    expect(log.error).toHaveBeenCalledWith('Unable to parse certificate', false, expect.anything());
+  });
+
+  it('should log an error if socket.getX509Certificate returns undefined', async () => {
+    vi.spyOn(tls.TLSSocket.prototype, 'getX509Certificate').mockImplementationOnce(() => undefined);
+    const certPath = path.join(__dirname, '..', 'e2e', 'fixtures', 'MSIXDevCert.pfx');
+    const result = await getCertPublisher(certPath, 'Password123');
+    expect(result).toBeNull();
+    expect(log.error).toHaveBeenCalledWith('Unable to parse certificate', false, new Error('No certificate found'));
   });
 
   it('should call priConfig with the correct arguments', async () => {

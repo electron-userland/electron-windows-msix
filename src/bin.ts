@@ -1,10 +1,15 @@
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import tls from 'node:tls';
+
 import { sign as windowsSign, SignOptions } from "@electron/windows-sign";
 import { spawn } from 'child_process';
 
 import { log } from "./logger";
 import { ProgramOptions } from "./types";
 
-const  run = async (executable: string, args: Array<string>)  => {
+const run = async (executable: string, args: Array<string>)  => {
   return new Promise<string>((resolve, reject) => {
     const proc = spawn(executable, args, {});
     log.debug(`Calling ${executable} with args`, args);
@@ -52,18 +57,58 @@ const  run = async (executable: string, args: Array<string>)  => {
   })
 }
 
+export const exportedRunForVitest = run;
+
+/**
+ * Because node already has the ability to parse PFX but just chooses to not export a function for that,
+ * we will fake a tls connection here to extract pfx certificate information.
+ */
+async function parsePfx(pfxPath: string, passphrase: string): Promise<crypto.X509Certificate> {
+    const pfx = await fs.promises.readFile(pfxPath);
+    return new Promise((resolve, reject) => {
+        // Windows pipe which is not persistent and will be deleted when process exits. See https://nodejs.org/api/net.html#identifying-paths-for-ipc-connections
+        const pipePath = path.win32.join('\\\\?', 'pipe', 'electron-windows-msix', crypto.randomUUID());
+
+        const server = tls.createServer(
+            {
+                rejectUnauthorized: false,
+                pfx,
+                passphrase,
+            },
+            (socket) => {
+                const cert = socket.getX509Certificate();
+                if (cert) {
+                    resolve(cert);
+                } else {
+                    reject(new Error('No certificate found'));
+                }
+                socket.end();
+                server.close();
+            },
+        );
+
+        server.listen(pipePath);
+
+        const client = tls.connect(
+            {
+                path: pipePath,
+                rejectUnauthorized: false,
+            },
+            () => {
+                client.end();
+            },
+        );
+    });
+}
+
 export const getCertPublisher = async (cert: string, cert_pass: string) => {
-  const args = [];
-  args.push('-p', cert_pass);
-  args.push('-dump', cert);
-  const certDump = await run('certutil', args);
-  const subjectRegex = /Subject:\s*(.*)/;
-  const match = certDump.match(subjectRegex);
-  const publisher = match ? match[1].trim() : null;
-  if(!publisher) {
-    log.error('Unable to find publisher in Cert');
+  try {
+    const { subject } = await parsePfx(cert, cert_pass);
+    return subject;
+  } catch (e: unknown) {
+    log.error('Unable to parse certificate', false, e);
+    return null;
   }
-  return publisher;
 }
 
 export const priConfig = async (program: ProgramOptions) => {
