@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bitdisaster/electron-windows-msix.git"
+    "url": "git+https://github.com/electron-userland/electron-windows-msix.git"
   },
   "keywords": [
     "MSIX",
@@ -27,9 +27,9 @@
   "author": "Jan Hannemann",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/bitdisaster/electron-windows-msix/issues"
+    "url": "https://github.com/electron-userland/electron-windows-msix/issues"
   },
-  "homepage": "https://github.com/bitdisaster/electron-windows-msix#readme",
+  "homepage": "https://github.com/electron-userland/electron-windows-msix#readme",
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@vitest/coverage-istanbul": "3.2.4",
