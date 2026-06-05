@@ -1,5 +1,5 @@
 # MSIX packager for Electron Apps
-![electron_msix](https://github.com/bitdisaster/electron-windows-msix/assets/5191943/4321b39e-f4d8-4d2f-b6cb-78f7c27950ff)
+![electron_msix](https://github.com/electron-userland/electron-windows-msix/assets/5191943/4321b39e-f4d8-4d2f-b6cb-78f7c27950ff)
 
 
 Electron-Windows-MSIX is a module that lets you create an MSIX installer from a packaged Electron App.
