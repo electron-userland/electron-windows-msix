@@ -6,10 +6,10 @@ import { ProgramOptions } from './types';
 import { removePublisherPrefix } from './utils';
 
 export const ensureDevCert = async (programOptions: ProgramOptions) => {
-  if(programOptions.createDevCert) {
+  if (programOptions.createDevCert) {
     const template = fs.readFileSync(
       path.join(__dirname, '../static/templates/create_dev_cert.ps1.in'),
-      'utf-8'
+      'utf-8',
     );
     const publisherName = removePublisherPrefix(programOptions.publisher);
     const script = template
@@ -23,4 +23,4 @@ export const ensureDevCert = async (programOptions: ProgramOptions) => {
     await powershell(scriptPath);
     fs.unlinkSync(scriptPath);
   }
-}
+};

@@ -1,10 +1,9 @@
-import * as path from "path";
-import fs from "fs-extra";
+import * as path from 'path';
+import fs from 'fs-extra';
 
-import { ComToastActivationOptions, ManifestVariables, PackagingOptions } from "./types";
-import { removeFileExtension, removePublisherPrefix } from "./utils";
-import { ensureWindowsVersion } from "./win-version";
-
+import { ComToastActivationOptions, ManifestVariables, PackagingOptions } from './types';
+import { removeFileExtension, removePublisherPrefix } from './utils';
+import { ensureWindowsVersion } from './win-version';
 
 const DEFAULT_OS_VERSION = '10.0.19041.0';
 const DEFAULT_BACKGROUND_COLOR = 'transparent';
@@ -43,7 +42,7 @@ function getComToastExtensionsTemplate(): string {
 
 export function buildComToastActivationXml(
   opts: ComToastActivationOptions,
-  appExecutableFileName: string
+  appExecutableFileName: string,
 ): { comXmlns: string; ignorableCom: string; applicationExtensions: string } {
   const clsid = normalizeToastActivatorClsid(opts.toastActivatorClsid, false);
   const exeName = path.basename(opts.executable?.trim() || appExecutableFileName);
@@ -68,7 +67,9 @@ const getTemplate = () => {
   return content;
 };
 
-export const getManifestVariables = async (options: PackagingOptions): Promise < ManifestVariables > => {
+export const getManifestVariables = async (
+  options: PackagingOptions,
+): Promise<ManifestVariables> => {
   if (!options.appManifest) {
     return null;
   }
@@ -78,12 +79,12 @@ export const getManifestVariables = async (options: PackagingOptions): Promise <
   const appNameRegEx = /Executable="(.*?)"/s;
   const archRegEx = /ProcessorArchitecture="(.*?)"/s;
   const sparseRegex = /<uap10:AllowExternalContent>\s*true\s*<\/uap10:AllowExternalContent>/s;
-  const publisherRegex = /Publisher="(.*?)"/s
+  const publisherRegex = /Publisher="(.*?)"/s;
   let manifestOsMinVersion: string;
   let manifestAppName: string;
   let manifestPackageArch: string;
   let manifestIsSparsePackage = false;
-  let manifestPublisher: string
+  let manifestPublisher: string;
 
   let match = manifestXml.match(minWinVersionRegEx);
   if (match) {
@@ -116,10 +117,10 @@ export const getManifestVariables = async (options: PackagingOptions): Promise <
     manifestPackageArch,
     manifestIsSparsePackage,
     manifestPublisher,
-  }
+  };
 
   return manifestVariables;
-}
+};
 
 /**
  * Generates the AppxManifest.xml file from the options provided.
@@ -167,12 +168,18 @@ export const manifest = async (options: PackagingOptions) => {
     .replace(/{{IdentityName}}/g, packageIdentity)
     .replace(/{{AppDisplayName}}/g, appDisplayName || packageDisplayName || appName)
     .replace(/{{MinOSVersion}}/g, packageMinOSVersion || DEFAULT_OS_VERSION)
-    .replace(/{{MaxOSVersionTested}}/g, packageMaxOSVersionTested || packageMinOSVersion || DEFAULT_OS_VERSION)
+    .replace(
+      /{{MaxOSVersionTested}}/g,
+      packageMaxOSVersionTested || packageMinOSVersion || DEFAULT_OS_VERSION,
+    )
     .replace(/{{Version}}/g, version)
     .replace(/{{DisplayName}}/g, packageDisplayName || appDisplayName || appName)
     .replace(/{{PublisherName}}/g, publisherName)
     .replace(/{{PublisherDisplayName}}/g, publisherDisplayName || publisherName)
-    .replace(/{{PackageDescription}}/g, packageDescription || packageDisplayName || appDisplayName || appName)
+    .replace(
+      /{{PackageDescription}}/g,
+      packageDescription || packageDisplayName || appDisplayName || appName,
+    )
     .replace(/{{PackageBackgroundColor}}/g, packageBackgroundColor || DEFAULT_BACKGROUND_COLOR)
     .replace(/{{AppExecutable}}/g, appExecutable)
     .replace(/{{ProcessorArchitecture}}/g, targetArch)

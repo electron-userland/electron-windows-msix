@@ -1,9 +1,9 @@
 import { sign as windowsSign } from '@electron/windows-sign';
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getCertPublisher, make, pri, priConfig, sign } from "../../src/bin";
+import { getCertPublisher, make, pri, priConfig, sign } from '../../src/bin';
 import { log } from '../../src/logger';
 
 vi.mock('child_process', () => ({
@@ -22,13 +22,13 @@ vi.mock('child_process', () => ({
     emitter.stderr = new EventEmitter();
     emitter.stdin = {
       end: vi.fn(),
-    }
+    };
     return emitter;
   }),
 }));
 
 vi.mock('@electron/windows-sign', () => ({
-    sign: vi.fn(),
+  sign: vi.fn(),
 }));
 
 vi.mock('../../src/logger');
@@ -75,7 +75,9 @@ describe('bin', () => {
       emitter.stdin = { end: vi.fn() };
       return emitter;
     });
-    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow('Failed running certutil Exit Code: 1 See previous errors for details');
+    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow(
+      'Failed running certutil Exit Code: 1 See previous errors for details',
+    );
     expect(log.error).toHaveBeenCalledWith('stderr of certutil', false, ['certutil: Error: oops']);
   });
 
@@ -93,7 +95,9 @@ describe('bin', () => {
       emitter.stdin = { end: vi.fn() };
       return emitter;
     });
-    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow('Failed running certutil Exit Code: 1 See previous errors for details');
+    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow(
+      'Failed running certutil Exit Code: 1 See previous errors for details',
+    );
     expect(log.error).toHaveBeenCalledWith('stdout of certutil', false, ['some stdout output', '']);
   });
 
@@ -111,8 +115,14 @@ describe('bin', () => {
       emitter.stdin = { end: vi.fn() };
       return emitter;
     });
-    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow('Failed running certutil Exit Code: 1 See previous errors for details');
-    expect(log.error).not.toHaveBeenCalledWith('stderr of certutil', expect.anything(), expect.anything());
+    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow(
+      'Failed running certutil Exit Code: 1 See previous errors for details',
+    );
+    expect(log.error).not.toHaveBeenCalledWith(
+      'stderr of certutil',
+      expect.anything(),
+      expect.anything(),
+    );
     expect(log.error).toHaveBeenCalledWith('stdout of certutil', false, ['stdout only', '']);
   });
 
@@ -133,12 +143,16 @@ describe('bin', () => {
   });
 
   it('should call priConfig with the correct arguments', async () => {
-   await priConfig({
+    await priConfig({
       makePri: 'C:\\makepri.exe',
       priConfig: 'C:\\priConfig.xml',
       createPri: true,
     } as any);
-    expect(spawn).toHaveBeenCalledWith('C:\\makepri.exe', ['createconfig', '/cf', 'C:\\priConfig.xml', '/dq', 'en-US'], {});
+    expect(spawn).toHaveBeenCalledWith(
+      'C:\\makepri.exe',
+      ['createconfig', '/cf', 'C:\\priConfig.xml', '/dq', 'en-US'],
+      {},
+    );
   });
 
   it('should call priConfig with the correct arguments', async () => {
@@ -159,7 +173,22 @@ describe('bin', () => {
       appManifestLayout: 'C:\\appManifestLayout.xml',
       createPri: true,
     } as any);
-    expect(spawn).toHaveBeenCalledWith('C:\\makepri.exe', ['new', '/pr', 'C:\\layoutDir', '/cf', 'C:\\priConfig.xml', '/mn', 'C:\\appManifestLayout.xml', '/of', 'C:\\priFile.xml', '/v'], {});
+    expect(spawn).toHaveBeenCalledWith(
+      'C:\\makepri.exe',
+      [
+        'new',
+        '/pr',
+        'C:\\layoutDir',
+        '/cf',
+        'C:\\priConfig.xml',
+        '/mn',
+        'C:\\appManifestLayout.xml',
+        '/of',
+        'C:\\priFile.xml',
+        '/v',
+      ],
+      {},
+    );
   });
 
   it('should skip pri if createPri is false', async () => {
@@ -177,7 +206,11 @@ describe('bin', () => {
       isSparsePackage: false,
       compress: true,
     } as any);
-    expect(spawn).toHaveBeenCalledWith('C:\\makeappx.exe', ['pack', '/d', 'C:\\layoutDir', '/p', 'C:\\msix', '/o'], {});
+    expect(spawn).toHaveBeenCalledWith(
+      'C:\\makeappx.exe',
+      ['pack', '/d', 'C:\\layoutDir', '/p', 'C:\\msix', '/o'],
+      {},
+    );
   });
 
   it('should call make with the correct arguments for a sparse package', async () => {
@@ -188,7 +221,11 @@ describe('bin', () => {
       isSparsePackage: true,
       compress: true,
     } as any);
-    expect(spawn).toHaveBeenCalledWith('C:\\makeappx.exe', ['pack', '/d', 'C:\\layoutDir', '/p', 'C:\\msix', '/o', '/nv'], {});
+    expect(spawn).toHaveBeenCalledWith(
+      'C:\\makeappx.exe',
+      ['pack', '/d', 'C:\\layoutDir', '/p', 'C:\\msix', '/o', '/nv'],
+      {},
+    );
   });
 
   it('should call make with the correct arguments for an uncompressed package', async () => {
@@ -199,11 +236,15 @@ describe('bin', () => {
       isSparsePackage: false,
       compress: false,
     } as any);
-    expect(spawn).toHaveBeenCalledWith('C:\\makeappx.exe', ['pack', '/d', 'C:\\layoutDir', '/p', 'C:\\msix', '/o', '/nc'], {});
+    expect(spawn).toHaveBeenCalledWith(
+      'C:\\makeappx.exe',
+      ['pack', '/d', 'C:\\layoutDir', '/p', 'C:\\msix', '/o', '/nc'],
+      {},
+    );
   });
 
   it('should call sign with the correct arguments', async () => {
-    sign({
+    await sign({
       sign: true,
       signTool: 'C:\\SignTool.exe',
       signParams: ['-fd', 'sha256', '-f', 'C:\\cert.pfx'],
@@ -225,7 +266,7 @@ describe('bin', () => {
   });
 
   it('should not call sign if sign is false', async () => {
-    sign({
+    await sign({
       sign: false,
       signTool: 'C:\\SignTool.exe',
       signParams: ['-fd', 'sha256', '-f', 'C:\\cert.pfx'],

@@ -1,8 +1,8 @@
 import * as fs from 'fs';
-import path from "path";
-import { describe, it, expect, beforeAll, beforeEach } from "vitest";
+import path from 'path';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 
-import { packageMSIX } from "../../src/index";
+import { packageMSIX } from '../../src/index';
 import { getCertStatus, getCertSubject, installDevCert } from './utils/cert';
 
 describe('signing', () => {
@@ -26,17 +26,23 @@ describe('signing', () => {
           certificatePassword: 'Password123',
         },
       });
-      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
+      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+        true,
+      );
     });
 
     it('should sign the msix', async () => {
-      const certStatus = await getCertStatus(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
-      expect(certStatus).toBe('Valid')
+      const certStatus = await getCertStatus(
+        path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'),
+      );
+      expect(certStatus).toBe('Valid');
     });
 
     it('should the cert should have the correct subject', async () => {
-      const certSubject = await getCertSubject(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
-      expect(certSubject).toBe('CN=Electron MSIX')
+      const certSubject = await getCertSubject(
+        path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'),
+      );
+      expect(certSubject).toBe('CN=Electron MSIX');
     });
 
     it('should not sign the app if sign is set to false', async () => {
@@ -50,8 +56,12 @@ describe('signing', () => {
         },
         sign: false,
       });
-      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
-      const certStatus = await getCertStatus(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
+      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+        true,
+      );
+      const certStatus = await getCertStatus(
+        path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'),
+      );
       expect(certStatus).toBe('NotSigned');
     });
 
@@ -63,13 +73,15 @@ describe('signing', () => {
         windowsSignOptions: {
           certificateFile: path.join(__dirname, 'fixtures', 'MSIXDevCert.pfx'),
           certificatePassword: 'Password123',
-          signWithParams: [
-            '/v',
-          ],
+          signWithParams: ['/v'],
         },
       });
-      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
-      const certStatus = await getCertStatus(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
+      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+        true,
+      );
+      const certStatus = await getCertStatus(
+        path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'),
+      );
       expect(certStatus).toBe('Valid');
     });
 
@@ -81,8 +93,12 @@ describe('signing', () => {
         outputDir: path.join(__dirname, '..', '..', 'out'),
         appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_x64.xml'),
       });
-      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
-      const certStatus = await getCertStatus(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
+      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+        true,
+      );
+      const certStatus = await getCertStatus(
+        path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'),
+      );
       expect(certStatus).toBe('Valid');
     });
 
@@ -93,11 +109,16 @@ describe('signing', () => {
         outputDir: path.join(__dirname, '..', '..', 'out'),
         appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_x64.xml'),
         windowsSignOptions: {
-          certificateFile: path.join(__dirname, 'fixtures', 'MSIXDevCert.pfx'),          certificatePassword: 'Password123',
+          certificateFile: path.join(__dirname, 'fixtures', 'MSIXDevCert.pfx'),
+          certificatePassword: 'Password123',
         },
       });
-      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
-      const certStatus = await getCertStatus(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
+      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+        true,
+      );
+      const certStatus = await getCertStatus(
+        path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'),
+      );
       expect(certStatus).toBe('Valid');
     });
 
@@ -111,8 +132,12 @@ describe('signing', () => {
           certificatePassword: 'Password123',
         },
       });
-      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
-      const certStatus = await getCertStatus(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
+      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+        true,
+      );
+      const certStatus = await getCertStatus(
+        path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'),
+      );
       expect(certStatus).toBe('Valid');
     });
   });
@@ -131,17 +156,23 @@ describe('signing', () => {
         },
         windowsKitVersion: '10.0.26100.0',
       });
-      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
+      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+        true,
+      );
     });
 
     it('should sign the msix', async () => {
-      const certStatus = await getCertStatus(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
-      expect(certStatus).not.toBe('NotSigned')
+      const certStatus = await getCertStatus(
+        path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'),
+      );
+      expect(certStatus).not.toBe('NotSigned');
     });
 
     it('should have the correct subject', async () => {
-      const certSubject = await getCertSubject(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
-      expect(certSubject).toBe('CN=Dev Publisher')
+      const certSubject = await getCertSubject(
+        path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'),
+      );
+      expect(certSubject).toBe('CN=Dev Publisher');
     });
 
     it('should use the generated dev cert with the provided password via environment variables', async () => {
@@ -152,8 +183,12 @@ describe('signing', () => {
         appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_x64.xml'),
         logLevel: 'debug',
       });
-      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
-      const certStatus = await getCertStatus(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'));
+      expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+        true,
+      );
+      const certStatus = await getCertStatus(
+        path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'),
+      );
       expect(certStatus).not.toBe('NotSigned');
     });
   });

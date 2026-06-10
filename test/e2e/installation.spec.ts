@@ -1,8 +1,8 @@
 import fs from 'fs';
-import path from "path";
-import { describe, it, expect, beforeAll } from "vitest";
+import path from 'path';
+import { describe, it, expect, beforeAll } from 'vitest';
 
-import { packageMSIX } from "../../src/index";
+import { packageMSIX } from '../../src/index';
 import { installDevCert } from './utils/cert';
 import { checkInstall, installMSIX, uninstallMSIX } from './utils/installer';
 import { powershell } from '../../src/powershell';
