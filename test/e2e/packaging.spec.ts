@@ -1,8 +1,8 @@
 import * as fs from 'fs';
-import path from "path";
-import { describe, it, expect, beforeAll } from "vitest";
+import path from 'path';
+import { describe, it, expect, beforeAll } from 'vitest';
 
-import { packageMSIX } from "../../src/index";
+import { packageMSIX } from '../../src/index';
 import { installDevCert } from './utils/cert';
 import { readAppxManifestFromMsix } from './utils/installer';
 
@@ -72,15 +72,15 @@ describe('packaging', () => {
     const msixPath = path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix');
     expect(fs.existsSync(msixPath)).toBe(true);
     const manifestXml = await readAppxManifestFromMsix(msixPath);
-    expect(manifestXml).toContain('xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"');
+    expect(manifestXml).toContain(
+      'xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"',
+    );
     expect(manifestXml).toMatch(/IgnorableNamespaces="[^"]*\bcom\b/);
     expect(manifestXml).toContain('Category="windows.comServer"');
     expect(manifestXml).toContain('Category="windows.toastNotificationActivation"');
-    expect(manifestXml).toContain(
-      'ToastActivatorCLSID="a0e0e0e0-e0e0-4ae0-a0e0-e0e0e0e0e0e0"'
-    );
+    expect(manifestXml).toContain('ToastActivatorCLSID="a0e0e0e0-e0e0-4ae0-a0e0-e0e0e0e0e0e0"');
     expect(manifestXml).toMatch(
-      /<com:ExeServer[^>]*Executable="app\\hellomsix\.exe"[^>]*Arguments="-ToastActivated"/
+      /<com:ExeServer[^>]*Executable="app\\hellomsix\.exe"[^>]*Arguments="-ToastActivated"/,
     );
   });
 
@@ -144,7 +144,9 @@ describe('packaging', () => {
         appExecutable: 'hellomsix.exe',
         targetArch: 'x64',
       },
-      windowsKitPath: path.join('C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64'),
+      windowsKitPath: path.join(
+        'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64',
+      ),
     });
     expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(true);
   });
@@ -168,7 +170,9 @@ describe('packaging', () => {
       expect(e).toBeDefined();
       expect(e.message).toBe('The WindowsKitPath was provided but does not exist.');
     }
-    expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(false);
+    expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+      false,
+    );
   });
 
   it('should package with an explicit windows kit version', async () => {
@@ -206,7 +210,9 @@ describe('packaging', () => {
       expect(e).toBeDefined();
       expect(e.message).toBe('WindowsKitVersion was provided but does not exist.');
     }
-    expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(false);
+    expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+      false,
+    );
   });
 
   it('should package with windows kit version derived from manifest min version', async () => {
@@ -242,9 +248,13 @@ describe('packaging', () => {
       });
     } catch (e) {
       expect(e).toBeDefined();
-      expect(e.message).toBe('WindowsKitVersion read from AppManifest but WindowsKit does not exist.');
+      expect(e.message).toBe(
+        'WindowsKitVersion read from AppManifest but WindowsKit does not exist.',
+      );
     }
-    expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(false);
+    expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+      false,
+    );
   });
 
   it('should package without a given windows kit version or path', async () => {
@@ -265,7 +275,7 @@ describe('packaging', () => {
 
   it('should package if out dir does not exist', async () => {
     fs.rmSync(path.join(__dirname, '..', '..', 'out'), { recursive: true, force: true });
-     await packageMSIX({
+    await packageMSIX({
       appDir: path.join(__dirname, 'fixtures', 'app-x64'),
       outputDir: path.join(__dirname, '..', '..', 'out'),
       appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_x64.xml'),
@@ -322,13 +332,17 @@ describe('packaging', () => {
       });
     } catch (e) {
       expect(e).toBeDefined();
-      expect(e.message).toBe('Neither app manifest <appManifest> nor manifest variables <manifestVariables> provided.');
+      expect(e.message).toBe(
+        'Neither app manifest <appManifest> nor manifest variables <manifestVariables> provided.',
+      );
     }
-    expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(false);
+    expect(fs.existsSync(path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'))).toBe(
+      false,
+    );
   });
 
   it('should package without compression', async () => {
-     await packageMSIX({
+    await packageMSIX({
       appDir: path.join(__dirname, 'fixtures', 'app-x64'),
       outputDir: path.join(__dirname, '..', '..', 'out'),
       appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_x64.xml'),

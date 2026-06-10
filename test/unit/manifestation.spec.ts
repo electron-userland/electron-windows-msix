@@ -1,23 +1,28 @@
-import * as path from 'path'
-import { expect, describe, it, vi } from 'vitest'
+import * as path from 'path';
+import { expect, describe, it, vi } from 'vitest';
 
 import { makeProgramOptions } from '../../src/utils';
 import { ManifestGenerationVariables, PackagingOptions } from '../../src/types';
-import { getManifestVariables, manifest, normalizeToastActivatorClsid } from '../../src/manifestation';
+import {
+  getManifestVariables,
+  manifest,
+  normalizeToastActivatorClsid,
+} from '../../src/manifestation';
 
 vi.mock('fs-extra', async (importOriginal) => {
-  const actual = await importOriginal() as Record < string,
-    any > ;
-  return { default:  {
-    exists: vi.fn().mockReturnValue(true),
-    emptyDir: vi.fn(),
-    ensureDir: vi.fn(),
-    pathExists: vi.fn().mockReturnValue(true),
-    readFileSync: actual.readFileSync,
-    readFile: actual.readFile,
-    writeFile: vi.fn(),
-    copy: vi.fn(),
-  }};
+  const actual = (await importOriginal()) as Record<string, any>;
+  return {
+    default: {
+      exists: vi.fn().mockReturnValue(true),
+      emptyDir: vi.fn(),
+      ensureDir: vi.fn(),
+      pathExists: vi.fn().mockReturnValue(true),
+      readFileSync: actual.readFileSync,
+      readFile: actual.readFile,
+      writeFile: vi.fn(),
+      copy: vi.fn(),
+    },
+  };
 });
 
 const minimalManifestVariables: ManifestGenerationVariables = {
@@ -26,24 +31,23 @@ const minimalManifestVariables: ManifestGenerationVariables = {
   packageIdentity: 'com.electron.myapp',
   packageVersion: '1.42.0.0',
   publisher: 'Jan Hannemann',
-}
+};
 
 const minimalPackagingOptions: PackagingOptions = {
   appDir: 'C:\\app',
   outputDir: 'C:\\out',
   packageAssets: 'C:\\assets',
   manifestVariables: minimalManifestVariables,
-}
+};
 
 describe('manifestation', () => {
   describe('getManifestVariables', () => {
-
     it('should read manifest variables from AppxManifest.xml correctly', async () => {
       const packagingOptions: PackagingOptions = {
         ...minimalPackagingOptions,
         appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_x64.xml'),
-      }
-      const manifestVars = await getManifestVariables(packagingOptions)
+      };
+      const manifestVars = await getManifestVariables(packagingOptions);
       expect(manifestVars).toBeDefined();
       expect(manifestVars.manifestAppName).toBe('hellomsix');
       expect(manifestVars.manifestPackageArch).toBe('x64');
@@ -56,17 +60,16 @@ describe('manifestation', () => {
       const packagingOptions: PackagingOptions = {
         ...minimalPackagingOptions,
         appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_Sparse.xml'),
-      }
-      const manifestVars = await getManifestVariables(packagingOptions)
+      };
+      const manifestVars = await getManifestVariables(packagingOptions);
       expect(manifestVars.manifestIsSparsePackage).toBe(true);
-
     });
 
     it('should return null if no manifest is provided', async () => {
       const packagingOptions: PackagingOptions = {
         ...minimalPackagingOptions,
-      }
-      const manifestVars = await getManifestVariables(packagingOptions)
+      };
+      const manifestVars = await getManifestVariables(packagingOptions);
       expect(manifestVars).toBeNull();
     });
 
@@ -74,8 +77,8 @@ describe('manifestation', () => {
       const packagingOptions: PackagingOptions = {
         ...minimalPackagingOptions,
         appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_invalid.xml'),
-      }
-      const manifestVars = await getManifestVariables(packagingOptions)
+      };
+      const manifestVars = await getManifestVariables(packagingOptions);
       expect(manifestVars).toBeDefined();
       expect(manifestVars.manifestAppName).toBeUndefined();
       expect(manifestVars.manifestPackageArch).toBeUndefined();
@@ -90,7 +93,7 @@ describe('manifestation', () => {
       const packagingOptions: PackagingOptions = {
         ...minimalPackagingOptions,
         appManifest: path.join(__dirname, 'fixtures', 'AppxManifest_x64.xml'),
-      }
+      };
       const appManifestIn = await manifest(packagingOptions);
       expect(appManifestIn).toMatch(/<Identity Name="Electron.MySuite.HelloMSIX"/);
       expect(appManifestIn).toMatch(/ProcessorArchitecture="x64"/);
@@ -101,9 +104,8 @@ describe('manifestation', () => {
       expect(appManifestIn).toMatch(/<Logo>assets\\icon.png<\/Logo>/);
     });
 
-
     it('should generate a valid manifest with minimal arguments', async () => {
-      const {appManifestIn} = await makeProgramOptions(minimalPackagingOptions, null as any);
+      const { appManifestIn } = await makeProgramOptions(minimalPackagingOptions, null as any);
       expect(appManifestIn).toMatch(/<Identity Name="com.electron.myapp"/);
       expect(appManifestIn).toMatch(/ProcessorArchitecture="x64"/);
       expect(appManifestIn).toMatch(/Version="1.42.0.0"/);
@@ -111,8 +113,12 @@ describe('manifestation', () => {
       expect(appManifestIn).toMatch(/<DisplayName>HelloMSIX<\/DisplayName>/);
       expect(appManifestIn).toMatch(/<PublisherDisplayName>Jan Hannemann<\/PublisherDisplayName>/);
       expect(appManifestIn).toMatch(/<Logo>assets\\icon.png<\/Logo>/);
-      expect(appManifestIn).toMatch(/<TargetDeviceFamily Name="Windows\.Desktop" MinVersion="[\d.]+" MaxVersionTested="[\d.]+" \/>/);
-      expect(appManifestIn).toMatch(/<Application Id="App"  Executable="app\\HelloMSIX.exe" EntryPoint="Windows.FullTrustApplication">/);
+      expect(appManifestIn).toMatch(
+        /<TargetDeviceFamily Name="Windows\.Desktop" MinVersion="[\d.]+" MaxVersionTested="[\d.]+" \/>/,
+      );
+      expect(appManifestIn).toMatch(
+        /<Application Id="App"  Executable="app\\HelloMSIX.exe" EntryPoint="Windows.FullTrustApplication">/,
+      );
       expect(appManifestIn).toMatch(/DisplayName="HelloMSIX"/);
       expect(appManifestIn).toMatch(/Description="HelloMSIX"/);
       expect(appManifestIn).toMatch(/Square44x44Logo="assets\\Square44x44Logo.png"/);
@@ -133,11 +139,15 @@ describe('manifestation', () => {
           packageMinOSVersion: '10.0.17763.0',
           packageMaxOSVersionTested: '10.0.17763.0',
         },
-      }
+      };
       const appManifestIn = await manifest(packagingOptions);
       expect(appManifestIn).toMatch(/<DisplayName>Custom Package Display Name<\/DisplayName>/);
-      expect(appManifestIn).toMatch(/<PublisherDisplayName>Custom Publisher Display Name<\/PublisherDisplayName>/);
-      expect(appManifestIn).toMatch(/<TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.17763.0" \/>/);
+      expect(appManifestIn).toMatch(
+        /<PublisherDisplayName>Custom Publisher Display Name<\/PublisherDisplayName>/,
+      );
+      expect(appManifestIn).toMatch(
+        /<TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.17763.0" \/>/,
+      );
       expect(appManifestIn).toMatch(/DisplayName="Custom Display Name"/);
       expect(appManifestIn).toMatch(/Description="Custom Package Description"/);
       expect(appManifestIn).toMatch(/BackgroundColor="Custom Background Color"/);
@@ -151,9 +161,11 @@ describe('manifestation', () => {
           appDisplayName: 'Custom Display Name',
           packageMinOSVersion: '10.0.17763.0',
         },
-      }
+      };
       const appManifestIn = await manifest(packagingOptions);
-      expect(appManifestIn).toMatch(/<TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.17763.0" \/>/);
+      expect(appManifestIn).toMatch(
+        /<TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.17763.0" \/>/,
+      );
     });
 
     it('should use packageDisplayName as display name if appDisplayName and packageDescription is not provided', async () => {
@@ -163,7 +175,7 @@ describe('manifestation', () => {
           ...minimalManifestVariables,
           packageDisplayName: 'Custom Package Display Name',
         },
-      }
+      };
       const appManifestIn = await manifest(packagingOptions);
       expect(appManifestIn).toMatch(/<DisplayName>Custom Package Display Name<\/DisplayName>/);
       expect(appManifestIn).toMatch(/DisplayName="Custom Package Display Name"/);
@@ -177,7 +189,7 @@ describe('manifestation', () => {
           ...minimalManifestVariables,
           appDisplayName: 'Custom App Display Name',
         },
-      }
+      };
       const appManifestIn = await manifest(packagingOptions);
       expect(appManifestIn).toMatch(/Description="Custom App Display Name"/);
     });
@@ -186,7 +198,7 @@ describe('manifestation', () => {
       const packagingOptions: PackagingOptions = {
         ...minimalPackagingOptions,
         manifestVariables: undefined,
-      }
+      };
       const appManifestIn = await manifest(packagingOptions);
       expect(appManifestIn).toBeNull();
     });
@@ -205,17 +217,15 @@ describe('manifestation', () => {
       };
       const appManifestIn = await manifest(packagingOptions);
       expect(appManifestIn).toContain(
-        'xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"'
+        'xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"',
       );
       expect(appManifestIn).toMatch(/IgnorableNamespaces="[^"]*\bcom\b/);
       expect(appManifestIn).toMatch(
-        /<com:Extension Category="windows\.comServer">[\s\S]*<com:ExeServer Executable="app\\HelloMSIX\.exe" Arguments="-ToastActivated">/
+        /<com:Extension Category="windows\.comServer">[\s\S]*<com:ExeServer Executable="app\\HelloMSIX\.exe" Arguments="-ToastActivated">/,
       );
+      expect(appManifestIn).toContain('<com:Class Id="a1b2c3d4-e5f6-7890-abcd-ef1234567890"/>');
       expect(appManifestIn).toContain(
-        '<com:Class Id="a1b2c3d4-e5f6-7890-abcd-ef1234567890"/>'
-      );
-      expect(appManifestIn).toContain(
-        '<desktop:ToastNotificationActivation ToastActivatorCLSID="a1b2c3d4-e5f6-7890-abcd-ef1234567890" />'
+        '<desktop:ToastNotificationActivation ToastActivatorCLSID="a1b2c3d4-e5f6-7890-abcd-ef1234567890" />',
       );
     });
 
@@ -231,11 +241,9 @@ describe('manifestation', () => {
       };
       const appManifestIn = await manifest(packagingOptions);
       expect(appManifestIn).toMatch(
-        /<com:ExeServer Executable="app\\HelloMSIX\.exe" Arguments="-ToastActivated">/
+        /<com:ExeServer Executable="app\\HelloMSIX\.exe" Arguments="-ToastActivated">/,
       );
-      expect(appManifestIn).toContain(
-        '<com:Class Id="bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"/>'
-      );
+      expect(appManifestIn).toContain('<com:Class Id="bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"/>');
     });
 
     it('should escape XML in comToastActivation executable basename', async () => {
@@ -250,9 +258,7 @@ describe('manifestation', () => {
         },
       };
       const appManifestIn = await manifest(packagingOptions);
-      expect(appManifestIn).toContain(
-        'Executable="app\\my&amp;app&quot;test&apos;exe.exe"'
-      );
+      expect(appManifestIn).toContain('Executable="app\\my&amp;app&quot;test&apos;exe.exe"');
     });
 
     it('should escape XML in comToastActivation arguments', async () => {
@@ -289,10 +295,10 @@ describe('manifestation', () => {
   describe('normalizeToastActivatorClsid', () => {
     it('normalizes GUID with or without braces to lowercase braced form', () => {
       expect(normalizeToastActivatorClsid('{ABCDEF01-2345-6789-ABCD-EF0123456789}')).toBe(
-        '{abcdef01-2345-6789-abcd-ef0123456789}'
+        '{abcdef01-2345-6789-abcd-ef0123456789}',
       );
       expect(normalizeToastActivatorClsid('ABCDEF01-2345-6789-ABCD-EF0123456789')).toBe(
-        '{abcdef01-2345-6789-abcd-ef0123456789}'
+        '{abcdef01-2345-6789-abcd-ef0123456789}',
       );
     });
   });

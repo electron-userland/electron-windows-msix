@@ -1,6 +1,6 @@
 const path = require('path');
 
-const { packageMSIX } = require("../lib/index.ms");
+const { packageMSIX } = require('../lib/index.ms');
 
 // packageMSIX({
 //   appDir:  path.join(__dirname, '..\\test\\fixtures\\app-x64'),
@@ -45,7 +45,7 @@ const { packageMSIX } = require("../lib/index.ms");
 // });
 const main = async () => {
   const artifacts = await packageMSIX({
-    appDir:  path.join(__dirname, '\\..\\test\\e2e\\fixtures\\app-x64'),
+    appDir: path.join(__dirname, '\\..\\test\\e2e\\fixtures\\app-x64'),
     manifestVariables: {
       publisher: 'Electron MSIX',
       packageIdentity: 'com.electron.myapp',
@@ -58,7 +58,7 @@ const main = async () => {
   });
 
   console.log(artifacts);
-}
+};
 
 // {
 //   "manifestVariables": {
@@ -76,7 +76,7 @@ const main = async () => {
 //   "logLevel": "debug"
 // }
 
-main();
+void main();
 
 // packageMSIX({
 //     appDir:  path.join(__dirname, '..\\test\\fixtures\\app-arm64'),

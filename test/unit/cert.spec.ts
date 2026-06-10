@@ -1,18 +1,17 @@
 import fs from 'fs-extra';
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ensureDevCert } from "../../src/cert";
+import { ensureDevCert } from '../../src/cert';
 import { powershell } from '../../src/powershell';
 
 vi.mock('fs-extra', async (importOriginal) => {
-  const actual = await importOriginal() as Record < string,
-    any > ;
+  const actual = (await importOriginal()) as Record<string, any>;
   return {
     default: {
-    readFileSync: actual.readFileSync,
+      readFileSync: actual.readFileSync,
       writeFileSync: vi.fn(),
       unlinkSync: vi.fn(),
-    }
+    },
   };
 });
 
@@ -27,7 +26,7 @@ const programOptions = {
   cert_pass: 'my_password',
   cert_pfx: 'C:\\out\\dev_cert.pfx',
   cert_cer: 'C:\\out\\dev_cert.cer',
-}
+};
 
 describe('cert', () => {
   beforeEach(() => {
@@ -37,7 +36,7 @@ describe('cert', () => {
   it('should not call powershell if createDevCert is false', async () => {
     const programOptions = {
       createDevCert: false,
-    }
+    };
     await ensureDevCert(programOptions as any);
     expect(powershell).not.toHaveBeenCalled();
     expect(fs.writeFileSync).not.toHaveBeenCalled();
@@ -57,7 +56,10 @@ describe('cert', () => {
   it('should call powershell to create a dev cert', async () => {
     await ensureDevCert(programOptions as any);
     expect(powershell).toHaveBeenCalledWith('C:\\out\\create_dev_cert.ps1');
-    expect(fs.writeFileSync).toHaveBeenCalledWith('C:\\out\\create_dev_cert.ps1', expect.any(String));
+    expect(fs.writeFileSync).toHaveBeenCalledWith(
+      'C:\\out\\create_dev_cert.ps1',
+      expect.any(String),
+    );
     expect(fs.unlinkSync).toHaveBeenCalledWith('C:\\out\\create_dev_cert.ps1');
   });
 });

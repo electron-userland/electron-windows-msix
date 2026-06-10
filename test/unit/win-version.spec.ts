@@ -1,4 +1,4 @@
-import { expect, describe, it } from 'vitest'
+import { expect, describe, it } from 'vitest';
 import { ensureWindowsVersion, WindowsOSVersion } from '../../src/win-version';
 
 describe('win-version', () => {
