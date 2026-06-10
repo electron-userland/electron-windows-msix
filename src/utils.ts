@@ -379,7 +379,7 @@ export const makeProgramOptions = async (
   let cert_pass = '';
 
   const createDevCert =
-    sign && !options.windowsSignOptions?.certificateFile && !process.env.WINDOWS_CERTIFICATE_FILE;
+    sign && !options.windowsSignOptions && !process.env.WINDOWS_CERTIFICATE_FILE;
   if (sign) {
     windowsSignOptions = options.windowsSignOptions || {
       files: [msix],
