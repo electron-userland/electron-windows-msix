@@ -6,7 +6,10 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "prepublish": "npm run build",
+    "prepare": "husky",
     "build": "tsc",
+    "lint": "oxfmt --check . && oxlint",
+    "lint:fix": "oxfmt --write . && oxlint --fix",
     "test:e2e": "vitest run --config=./test/e2e/vitest.config.ts",
     "test:e2e:coverage": "vitest run --coverage --config=./test/e2e/vitest.config.ts",
     "harness": "tsc & node ./harness/testing.cjs",
@@ -33,8 +36,22 @@
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@vitest/coverage-istanbul": "3.2.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "oxfmt": "^0.44.0",
+    "oxlint": "^1.59.0",
+    "oxlint-tsgolint": "^0.20.0",
     "typescript": "^5.3.3",
     "vitest": "^3.2.4"
+  },
+  "lint-staged": {
+    "*.{js,ts,mjs}": [
+      "oxfmt --write",
+      "oxlint --fix"
+    ],
+    "*.{json,html}": [
+      "oxfmt --write"
+    ]
   },
   "dependencies": {
     "@electron/windows-sign": "^1.2.2",

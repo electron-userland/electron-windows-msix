@@ -4,3 +4,6 @@ test/
 harness/
 out/
 coverage/
+.husky/
+.oxlintrc.json
+.oxfmtrc.json
