@@ -7,3 +7,5 @@ coverage/
 .husky/
 .oxlintrc.json
 .oxfmtrc.json
+.yarn/
+.yarnrc.yml

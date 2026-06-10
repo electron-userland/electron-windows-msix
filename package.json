@@ -33,6 +33,7 @@
     "url": "https://github.com/electron-userland/electron-windows-msix/issues"
   },
   "homepage": "https://github.com/electron-userland/electron-windows-msix#readme",
+  "packageManager": "yarn@4.10.2",
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@vitest/coverage-istanbul": "3.2.4",

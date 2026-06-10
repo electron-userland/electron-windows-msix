@@ -1,5 +1,13 @@
-﻿node_modules
+node_modules
 out
 yarn-error.log
 lib
 coverage
+
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
