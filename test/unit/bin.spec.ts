@@ -1,10 +1,12 @@
 import { sign as windowsSign } from '@electron/windows-sign';
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
+import fs from 'fs-extra';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getCertPublisher, make, pri, priConfig, sign } from '../../src/bin';
 import { log } from '../../src/logger';
+import { powershell } from '../../src/powershell';
 
 vi.mock('child_process', () => ({
   spawn: vi.fn(() => {
@@ -31,113 +33,60 @@ vi.mock('@electron/windows-sign', () => ({
   sign: vi.fn(),
 }));
 
+vi.mock('../../src/powershell', () => ({
+  powershell: vi.fn(),
+}));
+
 vi.mock('../../src/logger');
 
 describe('bin', () => {
   beforeEach(() => {
     vi.mocked(windowsSign).mockClear();
     vi.mocked(spawn).mockClear();
+    vi.mocked(powershell).mockReset();
+    vi.spyOn(fs, 'readFileSync').mockReturnValue(
+      '$pfxPath = "{{PfxPath}}"; $pfxPasswordPlain = "{{Password}}"',
+    );
+    vi.spyOn(fs, 'writeFileSync').mockImplementation(() => undefined as any);
+    vi.spyOn(fs, 'removeSync').mockImplementation(() => undefined as any);
   });
 
   it('should return the publisher from the cert', async () => {
-    vi.mocked(spawn).mockImplementationOnce((_, __) => {
-      const stdoutData = `
-      NotAfter: 12/7/2024 7:01 PM
-      Subject: CN=Electron
-      Signature matches Public Key
-      `;
-      const emitter = new EventEmitter() as any;
-      setImmediate(() => {
-        emitter.stdout.emit('data', Buffer.from(stdoutData));
-        emitter.emit('exit', 0, null);
-      });
-
-      emitter.stdout = new EventEmitter();
-      emitter.stderr = new EventEmitter();
-      emitter.stdin = { end: vi.fn() };
-      return emitter;
-    });
+    // PowerShell's X509Certificate2.Subject returns a culture-invariant string.
+    vi.mocked(powershell).mockResolvedValueOnce('CN=Electron\r\n');
     const result = await getCertPublisher('C:\\cert.pfx', 'password');
-    expect(spawn).toHaveBeenCalledWith('certutil', ['-p', 'password', '-dump', 'C:\\cert.pfx'], {});
+    expect(powershell).toHaveBeenCalledWith(expect.stringMatching(/\.ps1$/));
     expect(result).toBe('CN=Electron');
   });
 
-  it('should log an error if the certutil command fails', async () => {
-    vi.mocked(spawn).mockImplementationOnce(() => {
-      const emitter = new EventEmitter() as any;
-      setImmediate(() => {
-        emitter['stderr'].emit('data', Buffer.from('certutil: Error: oops'));
-        emitter.emit('exit', 1, null);
-      });
-
-      emitter.stdout = new EventEmitter();
-      emitter.stderr = new EventEmitter();
-      emitter.stdin = { end: vi.fn() };
-      return emitter;
+  it('should pass the cert path and password into the templated script', async () => {
+    vi.mocked(powershell).mockResolvedValueOnce('CN=Electron');
+    let writtenScript = '';
+    vi.mocked(fs.writeFileSync).mockImplementationOnce((_path, data) => {
+      writtenScript = data as string;
     });
-    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow(
-      'Failed running certutil Exit Code: 1 See previous errors for details',
-    );
-    expect(log.error).toHaveBeenCalledWith('stderr of certutil', false, ['certutil: Error: oops']);
+    await getCertPublisher('C:\\cert.pfx', 'password');
+    expect(writtenScript).toContain('C:\\cert.pfx');
+    expect(writtenScript).toContain('password');
+    expect(writtenScript).not.toContain('{{PfxPath}}');
+    expect(writtenScript).not.toContain('{{Password}}');
   });
 
-  it('should log stdout when process exits with non-zero code and stdout is non-empty', async () => {
-    vi.mocked(spawn).mockImplementationOnce(() => {
-      const emitter = new EventEmitter() as any;
-      setImmediate(() => {
-        emitter.stdout.emit('data', Buffer.from('some stdout output\n'));
-        emitter.stderr.emit('data', Buffer.from('stderr message'));
-        emitter.emit('exit', 1, null);
-      });
-
-      emitter.stdout = new EventEmitter();
-      emitter.stderr = new EventEmitter();
-      emitter.stdin = { end: vi.fn() };
-      return emitter;
-    });
-    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow(
-      'Failed running certutil Exit Code: 1 See previous errors for details',
-    );
-    expect(log.error).toHaveBeenCalledWith('stdout of certutil', false, ['some stdout output', '']);
-  });
-
-  it('should not log stderr when process exits with non-zero code and stderr is empty', async () => {
-    vi.mocked(log.error).mockClear();
-    vi.mocked(spawn).mockImplementationOnce(() => {
-      const emitter = new EventEmitter() as any;
-      setImmediate(() => {
-        emitter.stdout.emit('data', Buffer.from('stdout only\n'));
-        emitter.emit('exit', 1, null);
-      });
-
-      emitter.stdout = new EventEmitter();
-      emitter.stderr = new EventEmitter();
-      emitter.stdin = { end: vi.fn() };
-      return emitter;
-    });
-    await expect(getCertPublisher('C:\\cert.pfx', 'password')).rejects.toThrow(
-      'Failed running certutil Exit Code: 1 See previous errors for details',
-    );
-    expect(log.error).not.toHaveBeenCalledWith(
-      'stderr of certutil',
-      expect.anything(),
+  it('should log an error if reading the cert fails', async () => {
+    vi.mocked(powershell).mockRejectedValueOnce(new Error('oops'));
+    const result = await getCertPublisher('C:\\cert.pfx', 'password');
+    expect(result).toBeNull();
+    expect(log.error).toHaveBeenCalledWith(
+      'Unable to read publisher from Cert',
+      false,
       expect.anything(),
     );
-    expect(log.error).toHaveBeenCalledWith('stdout of certutil', false, ['stdout only', '']);
+    // The temp script file is always cleaned up.
+    expect(fs.removeSync).toHaveBeenCalled();
   });
 
   it('should log an error if no publisher is found in the cert', async () => {
-    vi.mocked(spawn).mockImplementationOnce((_, __) => {
-      const emitter = new EventEmitter() as any;
-      setImmediate(() => {
-        emitter.stdout.emit('data', Buffer.from(''));
-        emitter.emit('exit', 0, null);
-      });
-      emitter.stdout = new EventEmitter();
-      emitter.stderr = new EventEmitter();
-      emitter.stdin = { end: vi.fn() };
-      return emitter;
-    });
+    vi.mocked(powershell).mockResolvedValueOnce('');
     await getCertPublisher('C:\\cert.pfx', 'password');
     expect(log.error).toHaveBeenCalledWith('Unable to find publisher in Cert');
   });

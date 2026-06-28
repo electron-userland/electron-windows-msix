@@ -1,0 +1,15 @@
+# Reads a certificate's subject in a culture-invariant form (e.g. "CN=..., O=...").
+# Using X509Certificate2 avoids parsing the localized output of `certutil -dump`,
+# whose labels (e.g. "Subject:") are translated on non-English Windows locales.
+$pfxPath = '{{PfxPath}}'
+$pfxPasswordPlain = '{{Password}}'
+$hasPassword = $pfxPasswordPlain -ne ""
+
+if ($hasPassword) {
+  $pfxPassword = ConvertTo-SecureString -String $pfxPasswordPlain -Force -AsPlainText
+  $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($pfxPath, $pfxPassword)
+} else {
+  $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($pfxPath)
+}
+
+Write-Output $cert.Subject
