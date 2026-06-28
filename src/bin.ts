@@ -56,19 +56,23 @@ export const getCertPublisher = async (cert: string, cert_pass: string) => {
   // Read the subject via .NET's X509Certificate2 instead of parsing `certutil -dump`.
   // certutil localizes its labels (e.g. "Subject:") so the previous regex never matched
   // on non-English Windows locales. X509Certificate2.Subject is culture-invariant.
-  // Values are passed through a templated script file (not string-interpolated into a
-  // -Command) to avoid quoting/injection issues, matching the pattern used in cert.ts.
+  //
+  // The PFX path (not secret) is templated into the script file, but the PFX password
+  // is passed via the CERT_PFX_PASSWORD environment variable on the spawned PowerShell
+  // process. The secret is therefore never written to disk (it could survive crashes,
+  // backups, or AV scans) and never appears on the command line (visible in process
+  // listings). The script reads it with `$env:CERT_PFX_PASSWORD`.
   const template = fs.readFileSync(
     path.join(__dirname, '../static/templates/get_cert_subject.ps1.in'),
     'utf-8',
   );
-  const script = template.replace(/{{PfxPath}}/g, cert).replace(/{{Password}}/g, cert_pass || '');
+  const script = template.replace(/{{PfxPath}}/g, cert);
 
   const scriptPath = path.join(os.tmpdir(), `get_cert_subject_${crypto.randomUUID()}.ps1`);
   let publisher: string | null = null;
   try {
     fs.writeFileSync(scriptPath, script);
-    const subject = (await powershell(scriptPath)).trim();
+    const subject = (await powershell(scriptPath, { CERT_PFX_PASSWORD: cert_pass || '' })).trim();
     publisher = subject || null;
   } catch (error) {
     log.error('Unable to read publisher from Cert', false, { error });

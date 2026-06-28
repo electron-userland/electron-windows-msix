@@ -45,7 +45,7 @@ describe('bin', () => {
     vi.mocked(spawn).mockClear();
     vi.mocked(powershell).mockReset();
     vi.spyOn(fs, 'readFileSync').mockReturnValue(
-      '$pfxPath = "{{PfxPath}}"; $pfxPasswordPlain = "{{Password}}"',
+      '$pfxPath = "{{PfxPath}}"; $pfxPasswordPlain = $env:CERT_PFX_PASSWORD',
     );
     vi.spyOn(fs, 'writeFileSync').mockImplementation(() => undefined as any);
     vi.spyOn(fs, 'removeSync').mockImplementation(() => undefined as any);
@@ -55,21 +55,42 @@ describe('bin', () => {
     // PowerShell's X509Certificate2.Subject returns a culture-invariant string.
     vi.mocked(powershell).mockResolvedValueOnce('CN=Electron\r\n');
     const result = await getCertPublisher('C:\\cert.pfx', 'password');
-    expect(powershell).toHaveBeenCalledWith(expect.stringMatching(/\.ps1$/));
+    expect(powershell).toHaveBeenCalledWith(
+      expect.stringMatching(/\.ps1$/),
+      expect.objectContaining({ CERT_PFX_PASSWORD: 'password' }),
+    );
     expect(result).toBe('CN=Electron');
   });
 
-  it('should pass the cert path and password into the templated script', async () => {
+  it('should template the cert path into the script but never the password', async () => {
     vi.mocked(powershell).mockResolvedValueOnce('CN=Electron');
     let writtenScript = '';
     vi.mocked(fs.writeFileSync).mockImplementationOnce((_path, data) => {
       writtenScript = data as string;
     });
     await getCertPublisher('C:\\cert.pfx', 'password');
+    // The (non-secret) PFX path is templated into the on-disk script...
     expect(writtenScript).toContain('C:\\cert.pfx');
-    expect(writtenScript).toContain('password');
     expect(writtenScript).not.toContain('{{PfxPath}}');
+    // ...but the password is NEVER written to disk.
+    expect(writtenScript).not.toContain('password');
     expect(writtenScript).not.toContain('{{Password}}');
+  });
+
+  it('should pass the password to powershell via the CERT_PFX_PASSWORD env var, not argv', async () => {
+    vi.mocked(powershell).mockResolvedValueOnce('CN=Electron');
+    await getCertPublisher('C:\\cert.pfx', 'super-secret');
+    const [scriptArg, envArg] = vi.mocked(powershell).mock.calls[0];
+    // The password must not be embedded in the command/script argument.
+    expect(scriptArg).not.toContain('super-secret');
+    // It is supplied via the spawned process's environment instead.
+    expect(envArg).toEqual({ CERT_PFX_PASSWORD: 'super-secret' });
+  });
+
+  it('should pass an empty CERT_PFX_PASSWORD env var when the cert has no password', async () => {
+    vi.mocked(powershell).mockResolvedValueOnce('CN=Electron');
+    await getCertPublisher('C:\\cert.pfx', '');
+    expect(powershell).toHaveBeenCalledWith(expect.any(String), { CERT_PFX_PASSWORD: '' });
   });
 
   it('should log an error if reading the cert fails', async () => {
