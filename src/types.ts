@@ -137,6 +137,11 @@ export interface PackagingOptions {
   /** Indicates whether to compress package files. It will be enabled by default. */
   compress?: boolean;
   /**
+   * Optional extra command line arguments to pass through to the `makeappx pack` invocation.
+   * These are appended after the arguments this module sets. E.g. `['/kf', 'C:\\path\\to\\key.txt']`.
+   */
+  makeAppxParams?: Array<string>;
+  /**
    * Indicates whether to sign the MSIX package. It will be enabled by default. If cert or signParams are not provided then the package will be signed with a dev cert.
    * If sign is false then the package will not be signed.
    */
@@ -173,6 +178,7 @@ export interface ProgramOptions {
   priFile: string;
   isSparsePackage: boolean;
   compress: boolean;
+  makeAppxParams?: Array<string>;
   sign: boolean;
   windowsSignOptions: WindowsSignOptions;
   createDevCert: boolean;

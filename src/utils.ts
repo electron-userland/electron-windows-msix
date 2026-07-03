@@ -439,6 +439,7 @@ export const makeProgramOptions = async (
     createPri,
     isSparsePackage,
     compress,
+    makeAppxParams: options.makeAppxParams,
     sign,
     windowsSignOptions,
     createDevCert,

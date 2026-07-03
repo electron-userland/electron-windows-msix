@@ -95,7 +95,7 @@ export const pri = async (program: ProgramOptions) => {
 };
 
 export const make = async (program: ProgramOptions) => {
-  const { makeMsix, layoutDir, msix, isSparsePackage, compress } = program;
+  const { makeMsix, layoutDir, msix, isSparsePackage, compress, makeAppxParams } = program;
   const args = ['pack', '/d', layoutDir, '/p', msix, '/o'];
 
   if (isSparsePackage) {
@@ -104,6 +104,7 @@ export const make = async (program: ProgramOptions) => {
   if (!compress) {
     args.push('/nc');
   }
+  args.push(...(makeAppxParams ?? []));
   await run(makeMsix, args);
 };
 

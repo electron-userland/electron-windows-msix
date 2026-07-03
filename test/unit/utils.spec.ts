@@ -1162,6 +1162,7 @@ describe('utils', () => {
       createPri: true,
       isSparsePackage: false,
       compress: true,
+      makeAppxParams: undefined,
       sign: true,
     } as any;
 
