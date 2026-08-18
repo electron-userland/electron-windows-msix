@@ -233,7 +233,10 @@ describe('manifestation', () => {
       expect(appManifestIn).toContain('<DisplayName>Great &amp; Awesome</DisplayName>');
     });
 
-    it('should not treat replacement patterns in manifest variables specially', async () => {
+    it('should insert String.replace replacement patterns like $& literally', async () => {
+      // Guards against regressing to plain string replacement in manifest(),
+      // which would expand `$&` to the matched placeholder instead of
+      // inserting the user's value verbatim.
       const packagingOptions: PackagingOptions = {
         ...minimalPackagingOptions,
         manifestVariables: {

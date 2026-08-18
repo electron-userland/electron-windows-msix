@@ -12,9 +12,6 @@ const TEMPLATES_DIR = path.join(__dirname, '../static/templates');
 const COM_MANIFEST_NS = 'http://schemas.microsoft.com/appx/manifest/com/windows10';
 
 function escapeXmlAttr(value: string | null | undefined): string {
-  // String() matches the coercion String.prototype.replace applies to
-  // non-function replacement values, so partial manifest variables behave
-  // the same as before escaping was introduced.
   return String(value)
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
