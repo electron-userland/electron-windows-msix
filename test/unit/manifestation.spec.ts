@@ -194,6 +194,57 @@ describe('manifestation', () => {
       expect(appManifestIn).toMatch(/Description="Custom App Display Name"/);
     });
 
+    it('should escape XML special characters in manifest variables', async () => {
+      const packagingOptions: PackagingOptions = {
+        ...minimalPackagingOptions,
+        manifestVariables: {
+          ...minimalManifestVariables,
+          publisher: 'Foo & Bar Inc.',
+          appDisplayName: 'Great & <awesome>',
+          publisherDisplayName: 'Foo & Bar Inc.',
+          packageDisplayName: 'Great & awesome',
+          packageDescription: `Great & "awesome" <app> by O'Brien`,
+        },
+      };
+      const appManifestIn = await manifest(packagingOptions);
+      expect(appManifestIn).toContain(
+        'Description="Great &amp; &quot;awesome&quot; &lt;app&gt; by O&apos;Brien"',
+      );
+      expect(appManifestIn).toContain('DisplayName="Great &amp; &lt;awesome&gt;"');
+      expect(appManifestIn).toContain('<DisplayName>Great &amp; awesome</DisplayName>');
+      expect(appManifestIn).toContain(
+        '<PublisherDisplayName>Foo &amp; Bar Inc.</PublisherDisplayName>',
+      );
+      expect(appManifestIn).toContain('Publisher="CN=Foo &amp; Bar Inc."');
+    });
+
+    it('should escape XML special characters in fallback description and display names', async () => {
+      const packagingOptions: PackagingOptions = {
+        ...minimalPackagingOptions,
+        manifestVariables: {
+          ...minimalManifestVariables,
+          appExecutable: 'Great & Awesome.exe',
+        },
+      };
+      const appManifestIn = await manifest(packagingOptions);
+      expect(appManifestIn).toContain('Executable="app\\Great &amp; Awesome.exe"');
+      expect(appManifestIn).toContain('Description="Great &amp; Awesome"');
+      expect(appManifestIn).toContain('DisplayName="Great &amp; Awesome"');
+      expect(appManifestIn).toContain('<DisplayName>Great &amp; Awesome</DisplayName>');
+    });
+
+    it('should not treat replacement patterns in manifest variables specially', async () => {
+      const packagingOptions: PackagingOptions = {
+        ...minimalPackagingOptions,
+        manifestVariables: {
+          ...minimalManifestVariables,
+          packageDescription: 'Costs $& and $1 only',
+        },
+      };
+      const appManifestIn = await manifest(packagingOptions);
+      expect(appManifestIn).toContain('Description="Costs $&amp; and $1 only"');
+    });
+
     it('should return null if no manifest variables are provided', async () => {
       const packagingOptions: PackagingOptions = {
         ...minimalPackagingOptions,
