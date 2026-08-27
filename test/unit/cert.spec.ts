@@ -62,4 +62,10 @@ describe('cert', () => {
     );
     expect(fs.unlinkSync).toHaveBeenCalledWith('C:\\out\\create_dev_cert.ps1');
   });
+
+  it('should write the script with a BOM so powershell.exe reads it as UTF-8', async () => {
+    await ensureDevCert(programOptions as any);
+    const script = vi.mocked(fs.writeFileSync).mock.calls[0][1] as string;
+    expect(script.startsWith('﻿')).toBe(true);
+  });
 });
