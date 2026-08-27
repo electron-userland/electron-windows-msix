@@ -147,6 +147,15 @@ export interface PackagingOptions {
    */
   sign?: boolean;
   /**
+   * Controls creation of a self-signed development certificate used to sign the package.
+   * When not set, a dev cert is created only if `sign` is enabled and neither `windowsSignOptions`
+   * nor the WINDOWS_CERTIFICATE_FILE environment variable is provided.
+   * Set to `true` to force dev cert creation even when `windowsSignOptions` is provided
+   * (it must not contain a `certificateFile` in that case), or to `false` to never create one,
+   * e.g. when signing is performed externally such as with Azure Trusted Signing.
+   */
+  createDevCert?: boolean;
+  /**
    * Optional options for @electron/windows-sign. If present it will supersede signParams parameter.
    */
   windowsSignOptions?: WindowsSignOptions;
@@ -196,7 +205,29 @@ export type ManifestVariables = {
   manifestPublisher: string;
 };
 
+/**
+ * Details about the generated development certificate used to sign the package.
+ */
+export interface DevCertInfo {
+  /** Path to the exported PFX (certificate including private key) in the output directory. */
+  pfxFile: string;
+  /**
+   * Path to the exported public certificate (.cer). To install the signed MSIX locally, this
+   * certificate must be trusted once, e.g. `certutil -addstore TrustedPeople <cerFile>` from an
+   * elevated prompt. Do not distribute this certificate.
+   */
+  cerFile: string;
+  /** Password protecting the PFX. Randomly generated unless a certificate password was provided. */
+  password: string;
+  /** Certificate subject, matching the package publisher, e.g. `CN=Dev Publisher`. */
+  subject: string;
+  /** Whether an existing certificate from the `CurrentUser\My` store was reused. */
+  reused: boolean;
+}
+
 export interface Artifacts {
+  /** Path of the finished MSIX package. */
   msixPackage: string;
-  certificate: string;
+  /** Set when the package was signed with a generated dev certificate. */
+  devCert?: DevCertInfo;
 }
