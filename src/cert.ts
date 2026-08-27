@@ -6,8 +6,9 @@ import { powershell } from './powershell';
 import { DevCertInfo, ProgramOptions } from './types';
 import { ensurePublisherPrefix } from './utils';
 
-// Values are spliced into single-quoted PowerShell literals, where only embedded single quotes need doubling.
-const escapePsLiteral = (value: string) => value.replace(/'/g, "''");
+// Values are spliced into single-quoted PowerShell literals. PowerShell also accepts the
+// typographic quotes U+2018-U+201B as single-quote delimiters, so all of them must be doubled.
+const escapePsLiteral = (value: string) => value.replace(/['‘-‛]/g, (quote) => quote + quote);
 
 export const ensureDevCert = async (
   programOptions: ProgramOptions,
@@ -29,9 +30,16 @@ export const ensureDevCert = async (
     .replace(/{{CerOutputPath}}/g, () => escapePsLiteral(programOptions.cert_cer));
 
   const scriptPath = path.join(programOptions.outputDir, 'create_dev_cert.ps1');
-  fs.writeFileSync(scriptPath, script);
-  const output = await powershell(scriptPath);
-  fs.unlinkSync(scriptPath);
+  // The BOM keeps powershell.exe from reading the script as ANSI, which would corrupt
+  // non-ASCII subjects and passwords. The script embeds the PFX password, so it must be
+  // removed even when PowerShell fails.
+  fs.writeFileSync(scriptPath, '﻿' + script);
+  let output: string;
+  try {
+    output = await powershell(scriptPath);
+  } finally {
+    fs.unlinkSync(scriptPath);
+  }
 
   const devCert: DevCertInfo = {
     pfxFile: programOptions.cert_pfx,
