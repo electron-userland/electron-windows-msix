@@ -99,10 +99,15 @@ certutil -addstore TrustedPeople C:\temp\out\dev_cert.cer
 Because the certificate is reused across builds, this is a one-time step per publisher.
 Do not distribute the dev certificate — it is for local development only.
 
-Use the `createDevCert` option to override the default behavior: `false` never creates a
-dev cert (required for external signing such as Azure Trusted Signing via `signWithParams`),
-and `true` creates one even when `windowsSignOptions` is provided, as long as it contains no
-`certificateFile`.
+Use the `createDevCert` option to override the default behavior: `false` guarantees no dev
+cert is created (useful for external signing such as Azure Trusted Signing via
+`signWithParams` or a signing hook — although providing any `windowsSignOptions` already
+disables the dev cert by default), and `true` creates one even when `windowsSignOptions`
+is provided, as long as it contains no `certificateFile`.
+
+Note for upgrades: versions up to 2.0.4 generated the dev certificate differently, so the
+first build after upgrading creates a fresh certificate and the trust step must be run once
+more.
 
 ### Toast / COM activation (generated manifest only)
 

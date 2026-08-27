@@ -97,10 +97,32 @@ describe('cert', () => {
     expect(script).toMatch(/\$pfxPasswordPlain = 'pass''word'/);
   });
 
+  it('should escape typographic quotes in injected values', async () => {
+    await ensureDevCert({
+      ...programOptions,
+      publisher: 'CN=O’Brien',
+      cert_pass: 'pass‘word‛',
+    } as any);
+    const script = getWrittenScript();
+    expect(script).toContain("$subjectName = 'CN=O’’Brien'");
+    expect(script).toContain("$pfxPasswordPlain = 'pass‘‘word‛‛'");
+  });
+
   it('should call powershell to create a dev cert', async () => {
     await ensureDevCert(programOptions as any);
     expect(powershell).toHaveBeenCalledWith(scriptPath);
     expect(fs.writeFileSync).toHaveBeenCalledWith(scriptPath, expect.any(String));
+    expect(fs.unlinkSync).toHaveBeenCalledWith(scriptPath);
+  });
+
+  it('should write the script with a BOM so powershell.exe reads it as UTF-8', async () => {
+    await ensureDevCert(programOptions as any);
+    expect(getWrittenScript().startsWith('﻿')).toBe(true);
+  });
+
+  it('should remove the script even when powershell fails', async () => {
+    vi.mocked(powershell).mockRejectedValue(new Error('boom'));
+    await expect(ensureDevCert(programOptions as any)).rejects.toThrow('boom');
     expect(fs.unlinkSync).toHaveBeenCalledWith(scriptPath);
   });
 
@@ -121,9 +143,9 @@ describe('cert', () => {
     expect(devCert.reused).toBe(true);
   });
 
-  it('should write the script with a BOM so powershell.exe reads it as UTF-8', async () => {
-    await ensureDevCert(programOptions as any);
-    const script = vi.mocked(fs.writeFileSync).mock.calls[0][1] as string;
-    expect(script.startsWith('﻿')).toBe(true);
+  it('should treat missing powershell output as not reused', async () => {
+    vi.mocked(powershell).mockResolvedValue(undefined as any);
+    const devCert = await ensureDevCert(programOptions as any);
+    expect(devCert.reused).toBe(false);
   });
 });
