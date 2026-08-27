@@ -72,16 +72,9 @@ describe('powershell', () => {
   });
 
   it('should not fall back on errors other than a missing executable', async () => {
-    // Shaped like cross-spawn-promise's ExitCodeError: a numeric exit code, no originalError.
-    const exitError = Object.assign(new Error('Command failed with a non-zero return code (1)'), {
-      code: 1,
-      stdout: new Uint8Array(),
-      stderr: new Uint8Array(),
-    });
+    const exitError = new Error('exited with code 1');
     vi.mocked(spawn).mockRejectedValueOnce(exitError);
-    await expect(powershell('Get-Process')).rejects.toThrow(
-      'Command failed with a non-zero return code (1)',
-    );
+    await expect(powershell('Get-Process')).rejects.toThrow('exited with code 1');
     expect(spawn).toHaveBeenCalledTimes(1);
   });
 });
