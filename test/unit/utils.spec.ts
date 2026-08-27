@@ -46,6 +46,10 @@ const minimalPackagingOptions: PackagingOptions = {
 
 vi.mock('../../src/logger');
 vi.mock('../../src/bin');
+vi.mock('../../src/winapp', () => ({
+  locateWinApp: vi.fn().mockResolvedValue(['C:\\winapp.exe']),
+  generateDevCert: vi.fn(),
+}));
 vi.mock('fs-extra', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, any>;
   return {
@@ -98,10 +102,10 @@ describe('utils', () => {
       expect(log.error).toHaveBeenCalledWith('MakePri binary makepri.exe not found in:', true, {
         windowsKitPath: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin',
       });
-      expect(log.error).toHaveBeenCalledWith('SignTool binary SignTool.exe not found in:', true, {
+      expect(log.warn).toHaveBeenCalledWith('SignTool binary SignTool.exe not found in:', {
         windowsKitPath: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin',
       });
-      expect(log.error).toHaveBeenCalledWith('MakeCert binary makecert.exe not found in:', true, {
+      expect(log.warn).toHaveBeenCalledWith('MakeCert binary makecert.exe not found in:', {
         windowsKitPath: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin',
       });
     });
@@ -869,6 +873,41 @@ describe('utils', () => {
       vi.mocked(log.warn).mockClear();
     });
 
+    it('should locate the winapp CLI instead of the Windows Kit when the winapp backend is used', async () => {
+      const packagingOptions: PackagingOptions = {
+        ...minimalPackagingOptions,
+        backend: 'winapp',
+      };
+      vi.mocked(fs.pathExists).mockClear();
+      const tooling = await locateMSIXTooling(packagingOptions);
+      expect(tooling).toStrictEqual({
+        makeAppx: '',
+        makePri: '',
+        signTool: '',
+        makeCert: '',
+        winApp: ['C:\\winapp.exe'],
+      });
+      expect(fs.pathExists).not.toHaveBeenCalled();
+      expect(log.error).not.toHaveBeenCalledWith(
+        expect.stringContaining('WindowsKit'),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('should warn that windows kit options are ignored when the winapp backend is used', async () => {
+      const packagingOptions: PackagingOptions = {
+        ...minimalPackagingOptions,
+        backend: 'winapp',
+        windowsKitPath: 'C:\\windowskit',
+      };
+      await locateMSIXTooling(packagingOptions);
+      expect(log.warn).toHaveBeenCalledWith(
+        'WindowsKitPath and WindowsKitVersion are ignored when the winapp backend is used.',
+        { windowsKitPath: 'C:\\windowskit', windowsKitVersion: undefined },
+      );
+    });
+
     it('should find binaries in the windows kit path if provided and it exists', async () => {
       const packagingOptions: PackagingOptions = {
         ...minimalPackagingOptions,
@@ -1184,6 +1223,23 @@ describe('utils', () => {
       expect(programOptions.cert_pass.length).toBe(16);
       expect(programOptions).toStrictEqual({
         ...defaultExpectedProgramOptions,
+        windowsSignOptions: defaultExpectedWindowsSignOptions,
+      });
+    });
+
+    it('should return the program options with the winapp command when the winapp backend is used', async () => {
+      const programOptions = await makeProgramOptions({
+        ...minimalPackagingOptions,
+        backend: 'winapp',
+      });
+
+      expect(programOptions).toStrictEqual({
+        ...defaultExpectedProgramOptions,
+        makeMsix: '',
+        makePri: '',
+        makeCert: '',
+        signTool: '',
+        winApp: ['C:\\winapp.exe'],
         windowsSignOptions: defaultExpectedWindowsSignOptions,
       });
     });

@@ -4,7 +4,7 @@ import { spawn } from 'child_process';
 import { log } from './logger';
 import { ProgramOptions } from './types';
 
-const run = async (executable: string, args: Array<string>) => {
+export const run = async (executable: string, args: Array<string>) => {
   return new Promise<string>((resolve, reject) => {
     const proc = spawn(executable, args, {});
     log.debug(`Calling ${executable} with args`, args);
@@ -47,6 +47,25 @@ const run = async (executable: string, args: Array<string>) => {
   });
 };
 
+/**
+ * Runs a Windows SDK build tool either directly from the Windows Kit (default) or through
+ * `winapp tool <tool-name> <args>` when the winapp backend is used. The winapp CLI resolves and
+ * downloads the SDK build tools on demand, so no locally installed Windows Kit is required.
+ * The tool arguments are identical for both backends.
+ */
+const runTool = async (
+  program: ProgramOptions,
+  tool: 'makeappx' | 'makepri',
+  executable: string,
+  args: Array<string>,
+) => {
+  const { winApp } = program;
+  if (winApp && winApp.length > 0) {
+    return run(winApp[0], [...winApp.slice(1), 'tool', tool, ...args]);
+  }
+  return run(executable, args);
+};
+
 export const getCertPublisher = async (cert: string, cert_pass: string) => {
   const args = [];
   args.push('-p', cert_pass);
@@ -66,7 +85,7 @@ export const priConfig = async (program: ProgramOptions) => {
   if (createPri) {
     const args = ['createconfig', '/cf', priConfig, '/dq', 'en-US'];
     log.debug('Creating pri config.');
-    await run(makePri, args);
+    await runTool(program, 'makepri', makePri, args);
   } else {
     log.debug('Skipping making pri config.');
   }
@@ -88,7 +107,7 @@ export const pri = async (program: ProgramOptions) => {
       priFile,
       '/v',
     ];
-    await run(makePri, args);
+    await runTool(program, 'makepri', makePri, args);
   } else {
     log.debug('Skipping making pri.');
   }
@@ -105,7 +124,7 @@ export const make = async (program: ProgramOptions) => {
     args.push('/nc');
   }
   args.push(...(makeAppxParams ?? []));
-  await run(makeMsix, args);
+  await runTool(program, 'makeappx', makeMsix, args);
 };
 
 export const sign = async (program: ProgramOptions) => {

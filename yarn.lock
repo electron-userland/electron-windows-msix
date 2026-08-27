@@ -460,6 +460,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@microsoft/winappcli@npm:^0.6.2":
+  version: 0.6.2
+  resolution: "@microsoft/winappcli@npm:0.6.2"
+  bin:
+    winapp: dist/cli.js
+  checksum: 10c0/92662d27c402f4474ad89ec21f55fbc092c807c6eaeb34bb34b6de1036ee6955cf02196c72690256da653a24f2c850424963afd1c18b2b4aca0b43cdff29f3ed
+  conditions: os=win32
+  languageName: node
+  linkType: hard
+
 "@oxfmt/binding-android-arm-eabi@npm:0.44.0":
   version: 0.44.0
   resolution: "@oxfmt/binding-android-arm-eabi@npm:0.44.0"
@@ -1337,6 +1347,7 @@ __metadata:
   dependencies:
     "@electron/windows-sign": "npm:^1.2.2"
     "@malept/cross-spawn-promise": "npm:^2.0.0"
+    "@microsoft/winappcli": "npm:^0.6.2"
     "@types/fs-extra": "npm:^11.0.4"
     "@vitest/coverage-istanbul": "npm:3.2.4"
     chalk: "npm:^3.0.0"
@@ -1350,6 +1361,11 @@ __metadata:
     typescript: "npm:^5.3.3"
     vitest: "npm:^3.2.4"
     xml-escape: "npm:^1.1.0"
+  peerDependencies:
+    "@microsoft/winappcli": ^0.6.2
+  peerDependenciesMeta:
+    "@microsoft/winappcli":
+      optional: true
   languageName: unknown
   linkType: soft
 

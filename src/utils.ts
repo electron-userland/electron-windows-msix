@@ -7,6 +7,7 @@ import { manifest } from './manifestation';
 import { getCertPublisher } from './bin';
 import { ManifestVariables, PackagingOptions, ProgramOptions, WindowsSignOptions } from './types';
 import { isValidVersion, WindowsOSVersion } from './win-version';
+import { locateWinApp } from './winapp';
 
 const DEFAULT_WIN_KIT_VERSION = '10.0.26100.0';
 const MIN_ARM_WIN_KIT_VERSION = '10.0.22621.0';
@@ -28,10 +29,12 @@ export const getBinaries = async (windowsKitPath: string) => {
     log.error(`MakeAppx binary ${MAKE_APPX_EXE} not found in:`, true, { windowsKitPath });
   if (!(await fs.exists(binaries.makePri)))
     log.error(`MakePri binary ${MAKE_PRI_EXE} not found in:`, true, { windowsKitPath });
+  // SignTool and MakeCert are not invoked by the packaging pipeline (signing goes through
+  // @electron/windows-sign and dev certs are created via PowerShell), so their absence is not fatal.
   if (!(await fs.exists(binaries.signTool)))
-    log.error(`SignTool binary ${SIGN_TOOL} not found in:`, true, { windowsKitPath });
+    log.warn(`SignTool binary ${SIGN_TOOL} not found in:`, { windowsKitPath });
   if (!(await fs.exists(binaries.makeCert)))
-    log.error(`MakeCert binary ${MAKE_CERT_EXE} not found in:`, true, { windowsKitPath });
+    log.warn(`MakeCert binary ${MAKE_CERT_EXE} not found in:`, { windowsKitPath });
   return binaries;
 };
 
@@ -226,12 +229,32 @@ export const setLogLevel = (options: PackagingOptions) => {
   globalThis.DEBUG = logLevel === 'debug';
 };
 
+export interface MSIXTooling {
+  makeAppx: string;
+  makePri: string;
+  signTool: string;
+  makeCert: string;
+  winApp?: Array<string>;
+}
+
 export const locateMSIXTooling = async (
   options: PackagingOptions,
   manifestVars?: ManifestVariables,
-) => {
+): Promise<MSIXTooling> => {
   const { appManifest, windowsKitVersion, windowsKitPath } = options;
   let arch = process.env.PROCESSOR_ARCHITECTURE === 'ARM64' ? 'arm64' : 'x64';
+
+  if (options.backend === 'winapp') {
+    if (windowsKitPath || windowsKitVersion) {
+      log.warn(
+        'WindowsKitPath and WindowsKitVersion are ignored when the winapp backend is used.',
+        { windowsKitPath, windowsKitVersion },
+      );
+    }
+    log.debug('Using the winapp CLI backend. Locating the winapp CLI....');
+    const winApp = await locateWinApp(options);
+    return { makeAppx: '', makePri: '', signTool: '', makeCert: '', winApp };
+  }
 
   if (windowsKitPath) {
     log.debug(
@@ -353,7 +376,10 @@ export const makeProgramOptions = async (
   options: PackagingOptions,
   manifestVars?: ManifestVariables,
 ) => {
-  const { makeAppx, makePri, signTool, makeCert } = await locateMSIXTooling(options, manifestVars);
+  const { makeAppx, makePri, signTool, makeCert, winApp } = await locateMSIXTooling(
+    options,
+    manifestVars,
+  );
   const { outputDir, layoutDir } = await ensureFolders(options);
   const { manifestAppName, manifestPackageArch, manifestIsSparsePackage, manifestPublisher } =
     manifestVars || {};
@@ -422,6 +448,7 @@ export const makeProgramOptions = async (
     makePri,
     makeCert,
     signTool,
+    ...(winApp ? { winApp } : {}),
     outputDir,
     layoutDir,
     msix,

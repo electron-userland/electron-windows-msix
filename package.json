@@ -12,6 +12,7 @@
     "lint:fix": "oxfmt --write . && oxlint --fix",
     "test:e2e": "vitest run --config=./test/e2e/vitest.config.ts",
     "test:e2e:coverage": "vitest run --coverage --config=./test/e2e/vitest.config.ts",
+    "test:e2e:winapp": "vitest run test/e2e/winapp.spec.ts --config=./test/e2e/vitest.config.ts",
     "harness": "tsc & node ./harness/testing.cjs",
     "test:unit": "vitest run --config=./test/unit/vitest.config.ts",
     "test:unit:watch": "vitest --config=./test/unit/vitest.config.ts",
@@ -35,6 +36,7 @@
   "homepage": "https://github.com/electron-userland/electron-windows-msix#readme",
   "packageManager": "yarn@4.10.2",
   "devDependencies": {
+    "@microsoft/winappcli": "^0.6.2",
     "@types/fs-extra": "^11.0.4",
     "@vitest/coverage-istanbul": "3.2.4",
     "husky": "^9.1.7",
@@ -61,5 +63,13 @@
     "debug": "^4.4.1",
     "fs-extra": "^11.2.0",
     "xml-escape": "^1.1.0"
+  },
+  "peerDependencies": {
+    "@microsoft/winappcli": "^0.6.2"
+  },
+  "peerDependenciesMeta": {
+    "@microsoft/winappcli": {
+      "optional": true
+    }
   }
 }

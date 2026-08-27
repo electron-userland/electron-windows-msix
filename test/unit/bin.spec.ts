@@ -243,6 +243,96 @@ describe('bin', () => {
     );
   });
 
+  it('should call priConfig through the winapp CLI when the winapp backend is used', async () => {
+    await priConfig({
+      makePri: '',
+      priConfig: 'C:\\priConfig.xml',
+      createPri: true,
+      winApp: ['C:\\winapp.exe'],
+    } as any);
+    expect(spawn).toHaveBeenCalledWith(
+      'C:\\winapp.exe',
+      ['tool', 'makepri', 'createconfig', '/cf', 'C:\\priConfig.xml', '/dq', 'en-US'],
+      {},
+    );
+  });
+
+  it('should call pri through the winapp CLI when the winapp backend is used', async () => {
+    await pri({
+      makePri: '',
+      priConfig: 'C:\\priConfig.xml',
+      layoutDir: 'C:\\layoutDir',
+      priFile: 'C:\\priFile.xml',
+      appManifestLayout: 'C:\\appManifestLayout.xml',
+      createPri: true,
+      winApp: ['C:\\winapp.exe'],
+    } as any);
+    expect(spawn).toHaveBeenCalledWith(
+      'C:\\winapp.exe',
+      [
+        'tool',
+        'makepri',
+        'new',
+        '/pr',
+        'C:\\layoutDir',
+        '/cf',
+        'C:\\priConfig.xml',
+        '/mn',
+        'C:\\appManifestLayout.xml',
+        '/of',
+        'C:\\priFile.xml',
+        '/v',
+      ],
+      {},
+    );
+  });
+
+  it('should call make through the winapp CLI when the winapp backend is used', async () => {
+    await make({
+      makeMsix: '',
+      layoutDir: 'C:\\layoutDir',
+      msix: 'C:\\msix',
+      isSparsePackage: true,
+      compress: false,
+      makeAppxParams: ['/kf', 'C:\\key.txt'],
+      winApp: ['C:\\winapp.exe'],
+    } as any);
+    expect(spawn).toHaveBeenCalledWith(
+      'C:\\winapp.exe',
+      [
+        'tool',
+        'makeappx',
+        'pack',
+        '/d',
+        'C:\\layoutDir',
+        '/p',
+        'C:\\msix',
+        '/o',
+        '/nv',
+        '/nc',
+        '/kf',
+        'C:\\key.txt',
+      ],
+      {},
+    );
+  });
+
+  it('should call make through the winapp CLI with a multi-part winapp command', async () => {
+    await make({
+      makeMsix: '',
+      layoutDir: 'C:\\layoutDir',
+      msix: 'C:\\msix',
+      isSparsePackage: false,
+      compress: true,
+      winApp: ['C:\\node.exe', 'C:\\cli.js'],
+    } as any);
+    expect(spawn).toHaveBeenCalledWith(
+      'C:\\node.exe',
+      ['C:\\cli.js', 'tool', 'makeappx', 'pack', '/d', 'C:\\layoutDir', '/p', 'C:\\msix', '/o'],
+      {},
+    );
+  });
+
   it('should call sign with the correct arguments', async () => {
     await sign({
       sign: true,

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ensureDevCert } from '../../src/cert';
 import { powershell } from '../../src/powershell';
+import { generateDevCert } from '../../src/winapp';
 
 vi.mock('fs-extra', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, any>;
@@ -17,6 +18,10 @@ vi.mock('fs-extra', async (importOriginal) => {
 
 vi.mock('../../src/powershell', () => ({
   powershell: vi.fn(),
+}));
+
+vi.mock('../../src/winapp', () => ({
+  generateDevCert: vi.fn(),
 }));
 
 const programOptions = {
@@ -40,6 +45,20 @@ describe('cert', () => {
     await ensureDevCert(programOptions as any);
     expect(powershell).not.toHaveBeenCalled();
     expect(fs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it('should create the dev cert with the winapp CLI when the winapp backend is used', async () => {
+    await ensureDevCert({ ...programOptions, winApp: ['C:\\winapp.exe'] } as any);
+    expect(generateDevCert).toHaveBeenCalledWith(
+      expect.objectContaining({ winApp: ['C:\\winapp.exe'] }),
+    );
+    expect(powershell).not.toHaveBeenCalled();
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it('should not use the winapp CLI if createDevCert is false', async () => {
+    await ensureDevCert({ createDevCert: false, winApp: ['C:\\winapp.exe'] } as any);
+    expect(generateDevCert).not.toHaveBeenCalled();
   });
 
   it('should fill the script with the correct values', async () => {

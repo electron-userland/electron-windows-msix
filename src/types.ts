@@ -154,6 +154,20 @@ export interface PackagingOptions {
    * Controls the level of logging
    */
   logLevel?: 'warn' | 'debug';
+  /**
+   * The tool backend used to build the package.
+   * - `sdk` (default): uses the binaries of a locally installed Windows Kit (Windows SDK).
+   * - `winapp`: uses Microsoft's winapp CLI (https://github.com/microsoft/winappCli), which downloads
+   *   the Windows SDK build tools on demand. No locally installed Windows SDK or PowerShell 7 required.
+   *   Requires the winapp CLI, either as the `@microsoft/winappcli` npm package or on the PATH
+   *   (e.g. via `winget install Microsoft.WinAppCli`). Note that the winapp CLI is in public preview.
+   */
+  backend?: 'sdk' | 'winapp';
+  /**
+   * An optional full path to the winapp CLI executable. Only used when `backend` is `winapp`.
+   * If not provided, the CLI is resolved from the `@microsoft/winappcli` npm package or the PATH.
+   */
+  winAppPath?: string;
 }
 
 export interface ProgramOptions {
@@ -161,6 +175,12 @@ export interface ProgramOptions {
   makePri: string;
   signTool: string;
   makeCert: string;
+  /**
+   * Command used to invoke the winapp CLI, as an argv prefix (e.g. `['C:\\path\\to\\winapp.exe']`
+   * or `[process.execPath, 'C:\\path\\to\\cli.js']`). Only set when the `winapp` backend is used;
+   * `undefined` means the Windows Kit binaries above are invoked directly.
+   */
+  winApp?: Array<string>;
   outputDir: string;
   layoutDir: string;
   msix: string;

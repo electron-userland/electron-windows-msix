@@ -34,3 +34,38 @@ jobs:
         with:
           name: coverage-report-e2e
           path: coverage
+
+  # Runs the winapp CLI backend tests on a machine without the Windows SDK to prove
+  # that the winapp backend packages without a locally installed Windows Kit.
+  e2e-winapp:
+    runs-on: windows-2025
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '22'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Cache winapp SDK build tools
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.winapp
+          key: winapp-buildtools-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+
+      - name: Remove the preinstalled Windows SDK tooling
+        shell: pwsh
+        run: Rename-Item 'C:\Program Files (x86)\Windows Kits' 'Windows Kits Disabled'
+
+      - name: Run winapp backend tests
+        run: yarn test:e2e:winapp
+        env:
+          MSIX_TEST_BACKEND: winapp

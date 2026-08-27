@@ -7,8 +7,10 @@ Electron-Windows-MSIX is a module that lets you create an MSIX installer from a 
 
 ### Prerequisites
  * Windows 10 or 11
- * The Windows 10 SDK you wan to target https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk
  * An understanding of MSIX packaging and AppxManifest, read more at https://learn.microsoft.com/en-us/windows/msix/package/manual-packaging-root
+ * Depending on the backend you choose (see [Backends](#backends)):
+   * `sdk` (default): The Windows 10/11 SDK you want to target https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk and PowerShell 7 (for dev cert creation)
+   * `winapp`: Microsoft's [winapp CLI](https://github.com/microsoft/winappCli) — no locally installed Windows SDK or PowerShell 7 required
 
 ### Installation
 
@@ -30,6 +32,9 @@ npm install electron-windows-msix --save-dev
                       WindowsKitPath is provided then the Windows Kit path will be derived from the S Version specified in AppManifest.xml.
   windowsKitPath     - An optional full path to the WindowsKit. This path will trump both WindowsKitVersion and AppxManifest.
   createPri          - Indicates whether to create Pri resource files. It is enabled by default.
+  compress           - Indicates whether to compress package files. It is enabled by default.
+  backend            - Optional tool backend: 'sdk' (default) uses a locally installed Windows Kit, 'winapp' uses Microsoft's winapp CLI. See the Backends section below.
+  winAppPath         - Optional full path to the winapp CLI executable. Only used when backend is 'winapp'.
   makeAppxParams     - Optional array of extra command line arguments appended to the `makeappx pack` invocation. E.g. ['/kf', 'key.txt'].
   sign               - Optional parameter that indicates whether the MSIX should be signed. True by default.
   windowsSignOptions - Optional parameter for `@electron/windows-sign`, missing will be filled in. See https://github.com/electron/windows-sign for details
@@ -165,6 +170,40 @@ await packageMSIX({
   }
 });
 ```
+
+## Backends
+
+The module can drive the MSIX tooling through two backends. The packaging behavior (layout, manifest generation,
+`makepri`/`makeappx` arguments, output naming) is identical for both — only how the SDK build tools are acquired
+and invoked differs. Signing always goes through [`@electron/windows-sign`](https://github.com/electron/windows-sign)
+regardless of the backend.
+
+| | `sdk` (default) | `winapp` |
+|---|---|---|
+| SDK build tools | Locally installed Windows 10/11 SDK | Downloaded on demand from NuGet by the winapp CLI (cached in `~/.winapp`) |
+| Dev cert creation | PowerShell 7 (`pwsh.exe`) | `winapp cert generate` |
+| Extra requirements | Windows SDK + PowerShell 7 | The winapp CLI (see below) |
+
+To use the `winapp` backend, install Microsoft's [winapp CLI](https://github.com/microsoft/winappCli) either as an
+npm package (`npm install --save-dev @microsoft/winappcli`) or system-wide (`winget install Microsoft.WinAppCli`),
+and pass `backend: 'winapp'`:
+
+```ts
+import { packageMSIX } from "electron-windows-msix";
+
+await packageMSIX({
+  backend: 'winapp',
+  appDir: 'C:\\temp\\myapp',
+  appManifest: 'C:\\temp\\AppxManifest.xml',
+  outputDir: 'C:\\temp\\out',
+});
+```
+
+Notes:
+* The winapp CLI is resolved from `winAppPath` if provided, then from the `@microsoft/winappcli` npm package, then from the `PATH`.
+* The first packaging run downloads the Windows SDK build tools from NuGet, so it needs network access and takes a bit longer. On CI, cache `~/.winapp` to avoid repeated downloads.
+* `windowsKitVersion` and `windowsKitPath` are ignored by the `winapp` backend.
+* The winapp CLI is currently in public preview, so the `winapp` backend should be considered experimental.
 
 ## Local Development
 

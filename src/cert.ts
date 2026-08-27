@@ -4,9 +4,14 @@ import path from 'path';
 import { powershell } from './powershell';
 import { ProgramOptions } from './types';
 import { removePublisherPrefix } from './utils';
+import { generateDevCert } from './winapp';
 
 export const ensureDevCert = async (programOptions: ProgramOptions) => {
   if (programOptions.createDevCert) {
+    if (programOptions.winApp) {
+      await generateDevCert(programOptions);
+      return;
+    }
     const template = fs.readFileSync(
       path.join(__dirname, '../static/templates/create_dev_cert.ps1.in'),
       'utf-8',
