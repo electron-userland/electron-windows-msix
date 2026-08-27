@@ -207,6 +207,26 @@ describe('signing', () => {
       expect(certSubject).toBe('CN=Dev Publisher');
     });
 
+    it('should reuse the dev cert when rebuilding for the same publisher', async () => {
+      const rebuild = await packageMSIX({
+        appDir: path.join(__dirname, 'fixtures', 'app-x64'),
+        outputDir: path.join(__dirname, '..', '..', 'out'),
+        manifestVariables: {
+          publisher: 'CN=Dev Publisher',
+          packageIdentity: 'com.example.app',
+          packageVersion: '1.42.0.0',
+          appExecutable: 'hellomsix.exe',
+          targetArch: 'x64',
+        },
+        windowsKitVersion: '10.0.26100.0',
+      });
+      expect(rebuild.devCert.reused).toBe(true);
+      const certSubject = await getCertSubject(
+        path.join(__dirname, '..', '..', 'out', 'hellomsix_x64.msix'),
+      );
+      expect(certSubject).toBe('CN=Dev Publisher');
+    });
+
     it('should use the generated dev cert with the provided password via environment variables', async () => {
       process.env.WINDOWS_CERTIFICATE_PASSWORD = 'Password123';
       const envResult = await packageMSIX({
