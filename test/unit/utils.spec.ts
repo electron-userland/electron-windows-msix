@@ -517,10 +517,46 @@ describe('utils', () => {
         );
       });
 
-      it('it should warn if no certificate file and no password is provided in windows sign options', async () => {
+      it('it should warn if no certificate is configured and no dev cert will be created', async () => {
         const packagingOptions: PackagingOptions = {
           ...minimalPackagingOptions,
           windowsSignOptions: {} as any,
+        };
+        await verifyOptions(packagingOptions);
+        expect(log.warn).toHaveBeenCalledWith(
+          'No certificate configured and no dev cert will be created. Signing will likely fail. Set <createDevCert> to true or provide a <certificateFile> or <signWithParams>.',
+        );
+      });
+
+      it('it should warn if windows sign options only contain a password and no dev cert will be created', async () => {
+        const packagingOptions: PackagingOptions = {
+          ...minimalPackagingOptions,
+          windowsSignOptions: {
+            certificatePassword: '123456',
+          } as any,
+        };
+        await verifyOptions(packagingOptions);
+        expect(log.warn).toHaveBeenCalledWith(
+          'No certificate configured and no dev cert will be created. Signing will likely fail. Set <createDevCert> to true or provide a <certificateFile> or <signWithParams>.',
+        );
+      });
+
+      it('it should not warn about a missing certificate when signWithParams is provided', async () => {
+        const packagingOptions: PackagingOptions = {
+          ...minimalPackagingOptions,
+          windowsSignOptions: {
+            signWithParams: ['/v'],
+          } as any,
+        };
+        await verifyOptions(packagingOptions);
+        expect(log.warn).not.toHaveBeenCalledWith(
+          'No certificate configured and no dev cert will be created. Signing will likely fail. Set <createDevCert> to true or provide a <certificateFile> or <signWithParams>.',
+        );
+      });
+
+      it('it should warn that a dev cert with a random password will be created when no sign options are provided', async () => {
+        const packagingOptions: PackagingOptions = {
+          ...minimalPackagingOptions,
         };
         await verifyOptions(packagingOptions);
         expect(log.warn).toHaveBeenCalledWith(
@@ -528,9 +564,21 @@ describe('utils', () => {
         );
       });
 
-      it('it should warn if no certificate file but a password is provided in windows sign options', async () => {
+      it('it should warn that a dev cert will use the password provided via environment variable', async () => {
         const packagingOptions: PackagingOptions = {
           ...minimalPackagingOptions,
+        };
+        process.env.WINDOWS_CERTIFICATE_PASSWORD = '123456';
+        await verifyOptions(packagingOptions);
+        expect(log.warn).toHaveBeenCalledWith(
+          'Path to cert <certificateFile> or environment variable WINDOWS_CERTIFICATE_FILE not provided. A dev cert will be created with the provided password and the package will be signed with it!',
+        );
+      });
+
+      it('it should warn that a dev cert will use the provided password when createDevCert is true', async () => {
+        const packagingOptions: PackagingOptions = {
+          ...minimalPackagingOptions,
+          createDevCert: true,
           windowsSignOptions: {
             certificatePassword: '123456',
           } as any,
@@ -541,15 +589,74 @@ describe('utils', () => {
         );
       });
 
-      it('it should warn if no certificate file but a password is provided via environment variable', async () => {
+      it('it should throw an error if createDevCert is true and a certificate file is provided', async () => {
         const packagingOptions: PackagingOptions = {
           ...minimalPackagingOptions,
-          windowsSignOptions: {} as any,
+          createDevCert: true,
+          windowsSignOptions: {
+            certificateFile: 'C:\\cert.pfx',
+          } as any,
         };
-        process.env.WINDOWS_CERTIFICATE_PASSWORD = '123456';
+        await verifyOptions(packagingOptions);
+        expect(log.error).toHaveBeenCalledWith(
+          'Option <createDevCert> is true but a certificate was provided via <certificateFile> or environment variable WINDOWS_CERTIFICATE_FILE. Remove one of the two.',
+          true,
+          { certificateFile: 'C:\\cert.pfx' },
+        );
+      });
+
+      it('it should throw an error if createDevCert is true and WINDOWS_CERTIFICATE_FILE is set', async () => {
+        const packagingOptions: PackagingOptions = {
+          ...minimalPackagingOptions,
+          createDevCert: true,
+        };
+        process.env.WINDOWS_CERTIFICATE_FILE = 'C:\\cert.pfx';
+        try {
+          await verifyOptions(packagingOptions);
+        } finally {
+          delete process.env.WINDOWS_CERTIFICATE_FILE;
+        }
+        expect(log.error).toHaveBeenCalledWith(
+          'Option <createDevCert> is true but a certificate was provided via <certificateFile> or environment variable WINDOWS_CERTIFICATE_FILE. Remove one of the two.',
+          true,
+          { certificateFile: 'C:\\cert.pfx' },
+        );
+      });
+
+      it('it should throw an error if a dev cert is needed but no publisher is available', async () => {
+        const packagingOptions: PackagingOptions = {
+          ...incompletePackagingOptions,
+          appManifest: 'C:\\app\\app.manifest',
+        };
+        await verifyOptions(packagingOptions, { manifestIsSparsePackage: false } as any);
+        expect(log.error).toHaveBeenCalledWith(
+          'A publisher is required to create a dev certificate, but neither the manifest nor the manifest variables provide one.',
+          true,
+        );
+      });
+
+      it('it should not warn about a missing certificate when a signing hook is configured', async () => {
+        const packagingOptions: PackagingOptions = {
+          ...minimalPackagingOptions,
+          windowsSignOptions: {
+            hookModulePath: 'C:\\sign-hook.js',
+          } as any,
+        };
+        await verifyOptions(packagingOptions);
+        expect(log.warn).not.toHaveBeenCalledWith(
+          'No certificate configured and no dev cert will be created. Signing will likely fail. Set <createDevCert> to true or provide a <certificateFile> or <signWithParams>.',
+        );
+      });
+
+      it('it should warn if createDevCert is true but sign is false', async () => {
+        const packagingOptions: PackagingOptions = {
+          ...minimalPackagingOptions,
+          sign: false,
+          createDevCert: true,
+        };
         await verifyOptions(packagingOptions);
         expect(log.warn).toHaveBeenCalledWith(
-          'Path to cert <certificateFile> or environment variable WINDOWS_CERTIFICATE_FILE not provided. A dev cert will be created with the provided password and the package will be signed with it!',
+          'Option <createDevCert> is true but <sign> is false. No dev cert will be created and the package will not be signed.',
         );
       });
 
@@ -1441,6 +1548,65 @@ describe('utils', () => {
         cert_pfx: '',
         cert_cer: '',
         cert_pass: 'password',
+        createDevCert: false,
+      });
+    });
+
+    it('should create a dev cert when createDevCert is true even when windowsSignOptions is provided', async () => {
+      const packagingOptions: PackagingOptions = {
+        ...minimalPackagingOptions,
+        createDevCert: true,
+        windowsSignOptions: {} as any,
+      };
+      vi.mocked(fs.pathExists).mockResolvedValueOnce(true as any);
+      const programOptions = await makeProgramOptions(packagingOptions);
+      expect(programOptions.cert_pass.length).toBe(16);
+      expect(programOptions).toStrictEqual({
+        ...defaultExpectedProgramOptions,
+        windowsSignOptions: {
+          certificateFile: 'C:\\out\\dev_cert.pfx',
+          certificatePassword: expect.any(String),
+          files: ['C:\\out\\app_x64.msix'],
+          hashes: ['sha256'] as any,
+        },
+        createDevCert: true,
+      });
+    });
+
+    it('should not mutate the provided windowsSignOptions when injecting the dev cert', async () => {
+      const providedSignOptions = {} as any;
+      const packagingOptions: PackagingOptions = {
+        ...minimalPackagingOptions,
+        createDevCert: true,
+        windowsSignOptions: providedSignOptions,
+      };
+      vi.mocked(fs.pathExists).mockResolvedValueOnce(true as any);
+      const programOptions = await makeProgramOptions(packagingOptions);
+      expect(providedSignOptions).toStrictEqual({});
+      expect(programOptions.windowsSignOptions).not.toBe(providedSignOptions);
+      expect(programOptions.windowsSignOptions.certificateFile).toBe(
+        path.join('C:\\out', 'dev_cert.pfx'),
+      );
+    });
+
+    it('should not create a dev cert when createDevCert is false and no windowsSignOptions are provided', async () => {
+      const packagingOptions: PackagingOptions = {
+        ...minimalPackagingOptions,
+        createDevCert: false,
+      };
+      vi.mocked(fs.pathExists).mockResolvedValueOnce(true as any);
+      const programOptions = await makeProgramOptions(packagingOptions);
+      expect(programOptions).toStrictEqual({
+        ...defaultExpectedProgramOptions,
+        windowsSignOptions: {
+          certificateFile: '',
+          certificatePassword: '',
+          files: ['C:\\out\\app_x64.msix'],
+          hashes: ['sha256'] as any,
+        },
+        cert_pfx: '',
+        cert_cer: '',
+        cert_pass: '',
         createDevCert: false,
       });
     });
