@@ -34,6 +34,9 @@ npm install electron-windows-msix --save-dev
   createPri          - Indicates whether to create Pri resource files. It is enabled by default.
   makeAppxParams     - Optional array of extra command line arguments appended to the `makeappx pack` invocation. E.g. ['/kf', 'key.txt'].
   sign               - Optional parameter that indicates whether the MSIX should be signed. True by default.
+  createDevCert      - Optional parameter that controls creation of a self-signed dev certificate. When not set, a dev cert is created only if signing is
+                      enabled and neither windowsSignOptions nor the WINDOWS_CERTIFICATE_FILE environment variable is provided. Set true to force creation
+                      even when windowsSignOptions is provided, or false to never create one (e.g. when signing externally, such as Azure Trusted Signing).
   windowsSignOptions - Optional parameter for `@electron/windows-sign`, missing will be filled in. See https://github.com/electron/windows-sign for details
   logLevel           - Optional log level. By default the module will be silent. The 'warn' level will give heads up on irregularities.
                       The 'debug' level will give extensive output to identify problems with the module.
@@ -43,7 +46,7 @@ npm install electron-windows-msix --save-dev
 MANIFEST GENERATION VARIABLES
 
 packageIdentity           - The identity of the MSIX package.
-publisher                 - The publisher of the MSIX package. This will also  be used to create a dev certificate if one is
+publisher                 - The publisher of the MSIX package. This will also be used as the subject of the dev certificate if one is created.
 publisherDisplayName      - The display name of the publisher of the MSIX package.
 packageVersion            - The version of the MSIX package. Semantic version can be used. However, pre-release version will be converted to valid Windows versions .
 packageDisplayName        - The display name of the MSIX package. This will be used to set the DisplayName attribute in the AppxManifest.xml.
@@ -61,7 +64,7 @@ comToastActivation        - Optional. Adds COM server (`windows.comServer`) and 
 ```ts
 import { packageMSIX } from "electron-windows-msix";
 
-await packageMSIX({
+const { msixPackage, devCert } = await packageMSIX({
   appDir: 'C:\\temp\\myapp',
   outputDir: 'C:\\temp\\out',
   manifestVariables: {
@@ -72,7 +75,34 @@ await packageMSIX({
     targetArch: 'x64',
   },
 });
+// devCert.pfxFile, devCert.cerFile, devCert.password, devCert.subject, devCert.reused
 ```
+
+### The dev certificate
+
+When signing is enabled and no certificate is configured (no `windowsSignOptions` and no
+`WINDOWS_CERTIFICATE_FILE` environment variable), a self-signed development certificate is
+created for the package publisher and used to sign the MSIX. The certificate is kept in the
+`CurrentUser\My` certificate store and reused on subsequent builds for the same publisher.
+Both the private certificate (`dev_cert.pfx`) and the public certificate (`dev_cert.cer`)
+are exported to `outputDir`, and their paths — along with the PFX password, which is randomly
+generated unless a certificate password was provided — are returned from `packageMSIX` in the
+`devCert` field.
+
+Windows only installs MSIX packages whose signing certificate it trusts. To install a
+dev-signed package locally, trust the certificate once from an elevated prompt:
+
+```
+certutil -addstore TrustedPeople C:\temp\out\dev_cert.cer
+```
+
+Because the certificate is reused across builds, this is a one-time step per publisher.
+Do not distribute the dev certificate — it is for local development only.
+
+Use the `createDevCert` option to override the default behavior: `false` never creates a
+dev cert (required for external signing such as Azure Trusted Signing via `signWithParams`),
+and `true` creates one even when `windowsSignOptions` is provided, as long as it contains no
+`certificateFile`.
 
 ### Toast / COM activation (generated manifest only)
 
