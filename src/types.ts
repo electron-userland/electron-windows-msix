@@ -151,8 +151,9 @@ export interface PackagingOptions {
    * When not set, a dev cert is created only if `sign` is enabled and neither `windowsSignOptions`
    * nor the WINDOWS_CERTIFICATE_FILE environment variable is provided.
    * Set to `true` to force dev cert creation even when `windowsSignOptions` is provided
-   * (it must not contain a `certificateFile` in that case), or to `false` to never create one,
-   * e.g. when signing is performed externally such as with Azure Trusted Signing.
+   * (it must not contain a `certificateFile` in that case), or to `false` to guarantee none is
+   * created, e.g. when signing is performed externally such as with Azure Trusted Signing.
+   * Has no effect when `sign` is false: nothing is created either way.
    */
   createDevCert?: boolean;
   /**
