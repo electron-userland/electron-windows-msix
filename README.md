@@ -201,6 +201,9 @@ await packageMSIX({
 
 Notes:
 * The winapp CLI is resolved from `winAppPath` if provided, then from the `@microsoft/winappcli` npm package, then from the `PATH`.
+* `@microsoft/winappcli` is deliberately an optional peer dependency rather than a regular one: the package is
+  Windows-only (`os: win32`), so a regular dependency would break installs on macOS/Linux build machines, and it
+  weighs ~80 MB that `sdk`-backend users don't need. Install it only if you use the `winapp` backend.
 * The first packaging run downloads the Windows SDK build tools from NuGet, so it needs network access and takes a bit longer. On CI, cache `~/.winapp` to avoid repeated downloads.
 * `windowsKitVersion` and `windowsKitPath` are ignored by the `winapp` backend.
 * The winapp CLI is currently in public preview, so the `winapp` backend should be considered experimental.
