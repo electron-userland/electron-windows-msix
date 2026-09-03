@@ -1,7 +1,12 @@
 import { sign as windowsSign, SignOptions } from '@electron/windows-sign';
 import { spawn } from 'child_process';
+import crypto from 'crypto';
+import fs from 'fs-extra';
+import os from 'os';
+import path from 'path';
 
 import { log } from './logger';
+import { powershell } from './powershell';
 import { ProgramOptions } from './types';
 
 const run = async (executable: string, args: Array<string>) => {
@@ -48,13 +53,33 @@ const run = async (executable: string, args: Array<string>) => {
 };
 
 export const getCertPublisher = async (cert: string, cert_pass: string) => {
-  const args = [];
-  args.push('-p', cert_pass);
-  args.push('-dump', cert);
-  const certDump = await run('certutil', args);
-  const subjectRegex = /Subject:\s*(.*)/;
-  const match = certDump.match(subjectRegex);
-  const publisher = match ? match[1].trim() : null;
+  // Read the subject via .NET's X509Certificate2 instead of parsing `certutil -dump`.
+  // certutil localizes its labels (e.g. "Subject:") so the previous regex never matched
+  // on non-English Windows locales. X509Certificate2.Subject is culture-invariant.
+  //
+  // The PFX path (not secret) is templated into the script file, but the PFX password
+  // is passed via the CERT_PFX_PASSWORD environment variable on the spawned PowerShell
+  // process. The secret is therefore never written to disk (it could survive crashes,
+  // backups, or AV scans) and never appears on the command line (visible in process
+  // listings). The script reads it with `$env:CERT_PFX_PASSWORD`.
+  const template = fs.readFileSync(
+    path.join(__dirname, '../static/templates/get_cert_subject.ps1.in'),
+    'utf-8',
+  );
+  const script = template.replace(/{{PfxPath}}/g, cert);
+
+  const scriptPath = path.join(os.tmpdir(), `get_cert_subject_${crypto.randomUUID()}.ps1`);
+  let publisher: string | null = null;
+  try {
+    fs.writeFileSync(scriptPath, script);
+    const subject = (await powershell(scriptPath, { CERT_PFX_PASSWORD: cert_pass || '' })).trim();
+    publisher = subject || null;
+  } catch (error) {
+    log.error('Unable to read publisher from Cert', false, { error });
+  } finally {
+    fs.removeSync(scriptPath);
+  }
+
   if (!publisher) {
     log.error('Unable to find publisher in Cert');
   }
