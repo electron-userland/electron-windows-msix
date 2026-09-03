@@ -19,7 +19,9 @@ export const ensureDevCert = async (programOptions: ProgramOptions) => {
       .replace(/{{CerOutputPath}}/g, programOptions.cert_cer);
 
     const scriptPath = path.join(programOptions.outputDir, 'create_dev_cert.ps1');
-    fs.writeFileSync(scriptPath, script);
+    // The BOM keeps powershell.exe from reading the script as ANSI, which would corrupt
+    // non-ASCII subjects and passwords.
+    fs.writeFileSync(scriptPath, '﻿' + script);
     await powershell(scriptPath);
     fs.unlinkSync(scriptPath);
   }
