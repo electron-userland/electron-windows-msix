@@ -1,4 +1,4 @@
-import { sign as windowsSign, SignOptions } from '@electron/windows-sign';
+import type { SignOptions } from '@electron/windows-sign' with { 'resolution-mode': 'import' };
 import { spawn } from 'child_process';
 
 import { log } from './logger';
@@ -112,6 +112,8 @@ export const sign = async (program: ProgramOptions) => {
   if (program.sign) {
     const signOptions = program.windowsSignOptions;
     log.debug('Signing with options', signOptions);
+    // @electron/windows-sign is ESM-only, so it can't be require()d from this CommonJS module.
+    const { sign: windowsSign } = await import('@electron/windows-sign');
     await windowsSign(signOptions as SignOptions);
   } else {
     log.debug('Skipping signing.');

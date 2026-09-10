@@ -1,4 +1,4 @@
-import type { SignOptions } from '@electron/windows-sign';
+import type { SignOptions } from '@electron/windows-sign' with { 'resolution-mode': 'import' };
 
 /**
  * Modified SignOptions to make files and appDirectory optional. We can inject the MSIX package to the files array or the appDirectory if not provided.

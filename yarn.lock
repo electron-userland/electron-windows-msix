@@ -190,18 +190,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@electron/windows-sign@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "@electron/windows-sign@npm:1.2.2"
+"@electron/windows-sign@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@electron/windows-sign@npm:2.1.0"
   dependencies:
-    cross-dirname: "npm:^0.1.0"
     debug: "npm:^4.3.4"
-    fs-extra: "npm:^11.1.1"
-    minimist: "npm:^1.2.8"
+    graceful-fs: "npm:^4.2.11"
     postject: "npm:^1.0.0-alpha.6"
   bin:
-    electron-windows-sign: bin/electron-windows-sign.js
-  checksum: 10c0/5a467e1a368e24d40f60e593ea607fb945cd5adaf799318cdf3e086871be87bfb317aeabd39cb4f1a0f455d87c9111b7f2fd41a1eca24e9863b79dc10aca6386
+    electron-windows-sign: bin/electron-windows-sign.mjs
+  checksum: 10c0/954bce4db68a11e041a19be91017d57c4190beca94e1d05eb3434e2dc464176ff541764f0d8c41eff157b6b8cd498cf2e671cf9239b694da8e852f2f281f4d21
   languageName: node
   linkType: hard
 
@@ -1224,13 +1222,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-dirname@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "cross-dirname@npm:0.1.0"
-  checksum: 10c0/8924ce043e5d385929985fdcb1933cf9ca6a3e77b58d024ba396a8721d6044de14837651a785ef36af2b380ceea403699095cec802c25024420389299e62a123
-  languageName: node
-  linkType: hard
-
 "cross-spawn@npm:^7.0.1, cross-spawn@npm:^7.0.6":
   version: 7.0.6
   resolution: "cross-spawn@npm:7.0.6"
@@ -1279,7 +1270,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "electron-windows-msix@workspace:."
   dependencies:
-    "@electron/windows-sign": "npm:^1.2.2"
+    "@electron/windows-sign": "npm:^2.1.0"
     "@malept/cross-spawn-promise": "npm:^2.0.0"
     "@types/fs-extra": "npm:^11.0.4"
     "@vitest/coverage-istanbul": "npm:3.2.4"
@@ -1478,17 +1469,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fs-extra@npm:^11.1.1":
-  version: 11.3.1
-  resolution: "fs-extra@npm:11.3.1"
-  dependencies:
-    graceful-fs: "npm:^4.2.0"
-    jsonfile: "npm:^6.0.1"
-    universalify: "npm:^2.0.0"
-  checksum: 10c0/61e5b7285b1ca72c68dfe1058b2514294a922683afac2a80aa90540f9bd85370763d675e3b408ef500077d355956fece3bd24b546790e261c3d3015967e2b2d9
-  languageName: node
-  linkType: hard
-
 "fs-extra@npm:^11.2.0":
   version: 11.2.0
   resolution: "fs-extra@npm:11.2.0"
@@ -1542,7 +1522,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.6":
+"graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.11, graceful-fs@npm:^4.2.6":
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: 10c0/386d011a553e02bc594ac2ca0bd6d9e4c22d7fa8cfbfc448a6d148c59ea881b092db9dbe3547ae4b88e55f1b01f7c4a2ecc53b310c042793e63aa44cf6c257f2
@@ -1778,13 +1758,6 @@ __metadata:
   dependencies:
     brace-expansion: "npm:^2.0.1"
   checksum: 10c0/de96cf5e35bdf0eab3e2c853522f98ffbe9a36c37797778d2665231ec1f20a9447a7e567cb640901f89e4daaa95ae5d70c65a9e8aa2bb0019b6facbc3c0575ed
-  languageName: node
-  linkType: hard
-
-"minimist@npm:^1.2.8":
-  version: 1.2.8
-  resolution: "minimist@npm:1.2.8"
-  checksum: 10c0/19d3fcdca050087b84c2029841a093691a91259a47def2f18222f41e7645a0b7c44ef4b40e88a1e58a40c84d2ef0ee6047c55594d298146d0eb3f6b737c20ce6
   languageName: node
   linkType: hard
 
