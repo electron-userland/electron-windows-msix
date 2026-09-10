@@ -7,6 +7,7 @@ Electron-Windows-MSIX is a module that lets you create an MSIX installer from a 
 
 ### Prerequisites
  * Windows 10 or 11
+ * Node.js 22.12 or later
  * The Windows 10 SDK you wan to target https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk
  * An understanding of MSIX packaging and AppxManifest, read more at https://learn.microsoft.com/en-us/windows/msix/package/manual-packaging-root
 
