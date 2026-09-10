@@ -55,7 +55,7 @@
     ]
   },
   "dependencies": {
-    "@electron/windows-sign": "^1.2.2",
+    "@electron/windows-sign": "^2.1.0",
     "@malept/cross-spawn-promise": "^2.0.0",
     "chalk": "^3.0.0",
     "debug": "^4.4.1",
