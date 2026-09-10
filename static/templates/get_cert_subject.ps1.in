@@ -1,0 +1,18 @@
+# Reads a certificate's subject in a culture-invariant form (e.g. "CN=..., O=...").
+# Using X509Certificate2 avoids parsing the localized output of `certutil -dump`,
+# whose labels (e.g. "Subject:") are translated on non-English Windows locales.
+#
+# The PFX password is read from the CERT_PFX_PASSWORD environment variable so the
+# secret is never written to disk or passed on the command line (process listings).
+$pfxPath = '{{PfxPath}}'
+$pfxPasswordPlain = $env:CERT_PFX_PASSWORD
+$hasPassword = -not [string]::IsNullOrEmpty($pfxPasswordPlain)
+
+if ($hasPassword) {
+  $pfxPassword = ConvertTo-SecureString -String $pfxPasswordPlain -Force -AsPlainText
+  $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($pfxPath, $pfxPassword)
+} else {
+  $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($pfxPath)
+}
+
+Write-Output $cert.Subject
