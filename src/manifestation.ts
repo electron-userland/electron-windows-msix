@@ -11,8 +11,8 @@ const DEFAULT_BACKGROUND_COLOR = 'transparent';
 const TEMPLATES_DIR = path.join(__dirname, '../static/templates');
 const COM_MANIFEST_NS = 'http://schemas.microsoft.com/appx/manifest/com/windows10';
 
-function escapeXmlAttr(value: string): string {
-  return value
+function escapeXmlAttr(value: string | null | undefined): string {
+  return String(value)
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
@@ -165,23 +165,28 @@ export const manifest = async (options: PackagingOptions) => {
     applicationExtensions = built.applicationExtensions;
   }
   const manifest = template
-    .replace(/{{IdentityName}}/g, packageIdentity)
-    .replace(/{{AppDisplayName}}/g, appDisplayName || packageDisplayName || appName)
+    .replace(/{{IdentityName}}/g, () => escapeXmlAttr(packageIdentity))
+    .replace(/{{AppDisplayName}}/g, () =>
+      escapeXmlAttr(appDisplayName || packageDisplayName || appName),
+    )
     .replace(/{{MinOSVersion}}/g, packageMinOSVersion || DEFAULT_OS_VERSION)
     .replace(
       /{{MaxOSVersionTested}}/g,
       packageMaxOSVersionTested || packageMinOSVersion || DEFAULT_OS_VERSION,
     )
     .replace(/{{Version}}/g, version)
-    .replace(/{{DisplayName}}/g, packageDisplayName || appDisplayName || appName)
-    .replace(/{{PublisherName}}/g, publisherName)
-    .replace(/{{PublisherDisplayName}}/g, publisherDisplayName || publisherName)
-    .replace(
-      /{{PackageDescription}}/g,
-      packageDescription || packageDisplayName || appDisplayName || appName,
+    .replace(/{{DisplayName}}/g, () =>
+      escapeXmlAttr(packageDisplayName || appDisplayName || appName),
+    )
+    .replace(/{{PublisherName}}/g, () => escapeXmlAttr(publisherName))
+    .replace(/{{PublisherDisplayName}}/g, () =>
+      escapeXmlAttr(publisherDisplayName || publisherName),
+    )
+    .replace(/{{PackageDescription}}/g, () =>
+      escapeXmlAttr(packageDescription || packageDisplayName || appDisplayName || appName),
     )
     .replace(/{{PackageBackgroundColor}}/g, packageBackgroundColor || DEFAULT_BACKGROUND_COLOR)
-    .replace(/{{AppExecutable}}/g, appExecutable)
+    .replace(/{{AppExecutable}}/g, () => escapeXmlAttr(appExecutable))
     .replace(/{{ProcessorArchitecture}}/g, targetArch)
     .replace(/{{ComXmlns}}/g, comXmlns)
     .replace(/{{IgnorableNamespacesCom}}/g, ignorableNamespacesCom)
