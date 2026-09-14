@@ -117,7 +117,7 @@ describe('cert', () => {
 
   it('should write the script with a BOM so powershell.exe reads it as UTF-8', async () => {
     await ensureDevCert(programOptions as any);
-    expect(getWrittenScript().startsWith('﻿')).toBe(true);
+    expect(getWrittenScript().startsWith('\uFEFF')).toBe(true);
   });
 
   it('should remove the script even when powershell fails', async () => {
