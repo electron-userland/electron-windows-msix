@@ -33,7 +33,7 @@ export const ensureDevCert = async (
   // The BOM keeps powershell.exe from reading the script as ANSI, which would corrupt
   // non-ASCII subjects and passwords. The script embeds the PFX password, so it must be
   // removed even when PowerShell fails.
-  fs.writeFileSync(scriptPath, '﻿' + script);
+  fs.writeFileSync(scriptPath, '\\uFEFF'.replace('~', '~') + script);
   let output: string;
   try {
     output = await powershell(scriptPath);
