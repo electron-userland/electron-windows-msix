@@ -8,6 +8,8 @@ Electron-Windows-MSIX is a module that lets you create an MSIX installer from a 
 ### Prerequisites
  * Windows 10 or 11
  * The Windows 10 SDK you wan to target https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk
+ * PowerShell, which is only used when the module generates a development certificate. PowerShell 7 (`pwsh.exe`) is used when it is installed, otherwise the
+   built-in Windows PowerShell (`powershell.exe`) is used, so no separate PowerShell install is required.
  * An understanding of MSIX packaging and AppxManifest, read more at https://learn.microsoft.com/en-us/windows/msix/package/manual-packaging-root
 
 ### Installation
@@ -169,7 +171,8 @@ await packageMSIX({
 ## Local Development
 
 * Running the local E2E tests requires:
-  * [PowerShell 7](https://learn.microsoft.com/en-us/powershell/?view=powershell-7.5)
+  * [PowerShell 7.5 or later](https://learn.microsoft.com/en-us/powershell/?view=powershell-7.5) — unlike the module itself, the E2E certificate helper uses
+    .NET 9 APIs, so Windows PowerShell cannot run it
   * [Windows 11 SDK 10.0.26100.0](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/)
 
 ----
