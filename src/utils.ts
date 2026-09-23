@@ -49,19 +49,6 @@ export const ensurePublisherPrefix = (publisher: string) => {
   return !publisher || publisher.startsWith('CN=') ? publisher : `CN=${publisher}`;
 };
 
-/**
- * Decides whether a dev certificate will be created. Nothing is created when signing is
- * disabled. Otherwise an explicit `createDevCert` option wins, and when it is not set one is
- * created only when no signing configuration (`windowsSignOptions` or
- * WINDOWS_CERTIFICATE_FILE) was provided.
- */
-const resolveCreateDevCert = (options: PackagingOptions) => {
-  const sign = options.sign !== undefined ? options.sign : true;
-  if (!sign) return false;
-  if (options.createDevCert !== undefined) return options.createDevCert;
-  return !options.windowsSignOptions && !process.env.WINDOWS_CERTIFICATE_FILE;
-};
-
 export const ensureFolders = async (options: PackagingOptions) => {
   const outputDir = options.outputDir;
   const layoutDir = path.join(options.outputDir, 'msix_layout');
@@ -179,10 +166,6 @@ export const verifyOptions = async (
     log.error('Path to packages assets provided but <packageAssets> does not exist.', true, {
       packageAssets: options.packageAssets,
     });
-  if (!sign && options.createDevCert)
-    log.warn(
-      'Option <createDevCert> is true but <sign> is false. No dev cert will be created and the package will not be signed.',
-    );
   if (sign) {
     if (
       !windowsSignOptions ||
@@ -195,50 +178,20 @@ export const verifyOptions = async (
     }
 
     if (
-      options.createDevCert &&
-      (windowsSignOptions?.certificateFile || process.env.WINDOWS_CERTIFICATE_FILE)
-    )
-      log.error(
-        'Option <createDevCert> is true but a certificate was provided via <certificateFile> or environment variable WINDOWS_CERTIFICATE_FILE. Remove one of the two.',
-        true,
-        {
-          certificateFile:
-            windowsSignOptions?.certificateFile || process.env.WINDOWS_CERTIFICATE_FILE,
-        },
-      );
-    const willCreateDevCert = resolveCreateDevCert(options);
-    if (
-      willCreateDevCert &&
+      !windowsSignOptions?.certificateFile &&
+      !process.env.WINDOWS_CERTIFICATE_FILE &&
       (windowsSignOptions?.certificatePassword || process.env.WINDOWS_CERTIFICATE_PASSWORD)
     )
       log.warn(
         'Path to cert <certificateFile> or environment variable WINDOWS_CERTIFICATE_FILE not provided. A dev cert will be created with the provided password and the package will be signed with it!',
       );
     if (
-      willCreateDevCert &&
+      !windowsSignOptions?.certificateFile &&
       !windowsSignOptions?.certificatePassword &&
       !process.env.WINDOWS_CERTIFICATE_PASSWORD
     )
       log.warn(
         'Path to cert <certificateFile> and cert password <certificatePassword> or environment variable WINDOWS_CERTIFICATE_PASSWORD not provided. A dev cert will be created with a random password and the package will be signed with it!',
-      );
-    if (willCreateDevCert && !publisher)
-      log.error(
-        'A publisher is required to create a dev certificate, but neither the manifest nor the manifest variables provide one.',
-        true,
-      );
-    if (
-      !willCreateDevCert &&
-      !windowsSignOptions?.certificateFile &&
-      !process.env.WINDOWS_CERTIFICATE_FILE &&
-      !windowsSignOptions?.signWithParams &&
-      !process.env.WINDOWS_SIGN_WITH_PARAMS &&
-      !windowsSignOptions?.hookFunction &&
-      !windowsSignOptions?.hookModulePath &&
-      !process.env.WINDOWS_SIGN_HOOK_MODULE_PATH
-    )
-      log.warn(
-        'No certificate configured and no dev cert will be created. Signing will likely fail. Set <createDevCert> to true or provide a <certificateFile> or <signWithParams>.',
       );
     if (
       windowsSignOptions?.certificateFile &&
@@ -421,27 +374,23 @@ export const makeProgramOptions = async (
   const publisher = options.manifestVariables?.publisher || manifestPublisher || '';
   const sign = options.sign !== undefined ? options.sign : true;
   let windowsSignOptions: WindowsSignOptions;
-  let cert_pfx = '';
+  let cert_pfx = windowsSignOptions?.certificateFile || '';
   let cert_cer = '';
   let cert_pass = '';
 
-  const createDevCert = resolveCreateDevCert(options);
+  const createDevCert =
+    sign && !options.windowsSignOptions && !process.env.WINDOWS_CERTIFICATE_FILE;
   if (sign) {
-    // Work on a copy: the dev cert path/password and other defaults are injected below,
-    // and writing them into the caller's object would corrupt reuse of one options
-    // object across packageMSIX calls (e.g. multi-arch builds).
-    windowsSignOptions = options.windowsSignOptions
-      ? { ...options.windowsSignOptions }
-      : {
-          files: [msix],
-          certificateFile: '',
-          certificatePassword: '',
-          hashes: ['sha256'] as any,
-        };
+    windowsSignOptions = options.windowsSignOptions || {
+      files: [msix],
+      certificateFile: '',
+      certificatePassword: '',
+      hashes: ['sha256'] as any,
+    };
     cert_pass =
       windowsSignOptions?.certificatePassword ||
       process.env.WINDOWS_CERTIFICATE_PASSWORD ||
-      (createDevCert ? generatePassword() : '');
+      generatePassword();
     if (!windowsSignOptions.hashes || windowsSignOptions.hashes.length === 0) {
       windowsSignOptions.hashes = ['sha256'] as any;
     }

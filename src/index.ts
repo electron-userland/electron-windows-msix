@@ -4,7 +4,6 @@ import { getManifestVariables } from './manifestation';
 import {
   type Artifacts,
   type ComToastActivationOptions,
-  type DevCertInfo,
   type ManifestGenerationVariables,
   type PackagingOptions,
   type WindowsSignOptions,
@@ -22,18 +21,17 @@ export type {
   ManifestGenerationVariables,
   ComToastActivationOptions,
   Artifacts,
-  DevCertInfo,
   WindowsSignOptions,
 };
 
-export const packageMSIX = async (options: PackagingOptions): Promise<Artifacts> => {
+export const packageMSIX = async (options: PackagingOptions) => {
   setLogLevel(options);
   await ensureFolders(options);
   const manifestVars = await getManifestVariables(options);
   await verifyOptions(options, manifestVars);
   const program = await makeProgramOptions(options, manifestVars);
   await createLayout(program);
-  const devCert = await ensureDevCert(program);
+  await ensureDevCert(program);
   await priConfig(program);
   await pri(program);
   await make(program);
@@ -41,6 +39,5 @@ export const packageMSIX = async (options: PackagingOptions): Promise<Artifacts>
 
   return {
     msixPackage: program.msix,
-    devCert,
   };
 };
