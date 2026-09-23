@@ -49,6 +49,20 @@ export const ensurePublisherPrefix = (publisher: string) => {
   return !publisher || publisher.startsWith('CN=') ? publisher : `CN=${publisher}`;
 };
 
+// Normalize a distinguished name so two equivalent publishers compare equal regardless of
+// RDN ordering and whitespace (e.g. "CN=Foo, O=Bar" vs "O=Bar,CN=Foo"). Comparison is
+// case-insensitive on the RDN set to avoid false "publisher must match cert" mismatches.
+export const normalizePublisher = (publisher: string) => {
+  if (!publisher) return '';
+  return publisher
+    .split(',')
+    .map((rdn) => rdn.trim())
+    .filter((rdn) => rdn.length > 0)
+    .sort()
+    .join(',')
+    .toLowerCase();
+};
+
 export const ensureFolders = async (options: PackagingOptions) => {
   const outputDir = options.outputDir;
   const layoutDir = path.join(options.outputDir, 'msix_layout');
@@ -211,7 +225,7 @@ export const verifyOptions = async (
         windowsSignOptions?.certificateFile,
         windowsSignOptions?.certificatePassword,
       );
-      if (publisher != certPublisher)
+      if (normalizePublisher(publisher) != normalizePublisher(certPublisher || ''))
         log.error('The publisher in the manifest must match the publisher of the cert', false, {
           manifest_publisher: publisher,
           cert_publisher: certPublisher,
