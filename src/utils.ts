@@ -67,6 +67,9 @@ export const ensureFolders = async (options: PackagingOptions) => {
   return { outputDir, layoutDir };
 };
 
+export const DEFAULT_PACKAGE_ASSETS_WARNING =
+  "Path to package assets <packageAssets> not provided, so the default placeholder logos will be used (the app will show a placeholder icon in the taskbar and Start menu). Set <packageAssets> to a folder containing your app's logos (e.g. Square44x44Logo.png, Square150x150Logo.png, icon.png and their scaled variants) for production builds.";
+
 export const verifyOptions = async (
   options: PackagingOptions,
   manifestVars?: ManifestVariables,
@@ -160,8 +163,7 @@ export const verifyOptions = async (
     log.error('Path to application <appDir> not provided.', true);
   if (!(await fs.exists(options.appDir)) && !manifestIsSparsePackage)
     log.error('Path to application <appDir> does not exist.', true, { appDir: options.appDir });
-  if (!options.packageAssets)
-    log.warn('Path to packages assets <packageAssets> not provided, using default assets.');
+  if (!options.packageAssets) log.warnAlways(DEFAULT_PACKAGE_ASSETS_WARNING);
   if (options.packageAssets && !(await fs.exists(options.packageAssets)))
     log.error('Path to packages assets provided but <packageAssets> does not exist.', true, {
       packageAssets: options.packageAssets,
