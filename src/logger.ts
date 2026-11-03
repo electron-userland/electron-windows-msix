@@ -3,7 +3,12 @@ import createDebug from 'debug';
 
 const debug = createDebug('electron-windows-msix');
 export class log {
-  private static log(level: 'info' | 'warn' | 'error' | 'debug', message: string, object?: any) {
+  private static log(
+    level: 'info' | 'warn' | 'error' | 'debug',
+    message: string,
+    object?: any,
+    force: boolean = false,
+  ) {
     const logMessage = `${level}: ${message}`;
     let logObject = '';
     if (object)
@@ -25,7 +30,7 @@ export class log {
         console.groupEnd();
       }
     }
-    if (level === 'warn' && (!!globalThis.DEBUG || !!globalThis.SHOW_WARNINGS)) {
+    if (level === 'warn' && (force || !!globalThis.DEBUG || !!globalThis.SHOW_WARNINGS)) {
       console.log(chalk.yellow(logMessage));
       if (object) {
         console.group();
@@ -53,6 +58,8 @@ export class log {
 
   static info = (message: string, object?: any) => this.log('info', message, object);
   static warn = (message: string, object?: any) => this.log('warn', message, object);
+  /** Like `warn`, but printed regardless of `logLevel`. Reserve for problems users must not miss. */
+  static warnAlways = (message: string, object?: any) => this.log('warn', message, object, true);
   static error = (message: string, throwError: boolean = false, object?: any) => {
     this.log('error', message, object);
     if (throwError) throw new Error(message);

@@ -117,7 +117,11 @@ export interface PackagingOptions {
    * The folder containing the packaged Electron App. This parameter is required unless its building a Sparse MSIX.
    */
   appDir?: string;
-  /** Optional assets used in AppManifest.xml. E.g. icons and tile images. If not provided then the default assets will be used. */
+  /**
+   * Folder with the assets used in AppManifest.xml, e.g. icons and tile images (Square44x44Logo.png,
+   * Square150x150Logo.png, icon.png and their scaled variants). If not provided, the bundled placeholder
+   * logos are used and a warning is printed regardless of `logLevel`. Set this for production builds.
+   */
   packageAssets?: string;
   /** The output directory for the finished MSIX package. */
   outputDir: string;

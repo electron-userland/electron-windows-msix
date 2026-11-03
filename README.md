@@ -25,7 +25,9 @@ npm install electron-windows-msix --save-dev
   appDir             - The folder containing the packaged Electron App
   appManifest        - The AppManifest.xml containing necessary declarations to build the MSIX
   manifestVariables  - Optional manifest variables to generate a manifest if manifest file is not provided
-  packageAssets      - Required assets declared in AppManifest.xml. E.g. icons and tile images
+  packageAssets      - Folder with the assets declared in AppManifest.xml, e.g. icons and tile images (Square44x44Logo.png,
+                      Square150x150Logo.png, icon.png and their scaled variants). Set this for production builds: if it is
+                      omitted, the bundled placeholder logos are used and a warning is printed regardless of logLevel.
   outputDir          - The output directory for the finished MSIX package.
   packageName        - Optional name for the finished MSIX package. If not provided a name will be derived from AppManifest.xml.
   windowsKitVersion  - Optional version of the WindowsKit to use. If WindowsKitPath is provide then it will trump this. If neither WindowsKitVersion nor

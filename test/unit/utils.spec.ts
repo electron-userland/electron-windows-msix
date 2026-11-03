@@ -15,6 +15,7 @@ import {
   makeProgramOptions,
   createLayout,
   getBinaries,
+  DEFAULT_PACKAGE_ASSETS_WARNING,
 } from '../../src/utils';
 import { SignOptions } from '@electron/windows-sign';
 
@@ -167,6 +168,7 @@ describe('utils', () => {
     beforeEach(() => {
       vi.mocked(log.error).mockClear();
       vi.mocked(log.warn).mockClear();
+      vi.mocked(log.warnAlways).mockClear();
       vi.mocked(fs.exists).mockClear();
       delete process.env.WINDOWS_CERTIFICATE_PASSWORD;
       delete process.env.WINDOWS_CERTIFICATE_FILE;
@@ -747,9 +749,18 @@ describe('utils', () => {
         packageAssets: undefined,
       } as any;
       await verifyOptions(packagingOptions, { manifestIsSparsePackage: false } as any);
-      expect(log.warn).toHaveBeenCalledWith(
-        'Path to packages assets <packageAssets> not provided, using default assets.',
-      );
+      expect(log.warnAlways).toHaveBeenCalledWith(DEFAULT_PACKAGE_ASSETS_WARNING);
+      expect(log.warn).not.toHaveBeenCalledWith(DEFAULT_PACKAGE_ASSETS_WARNING);
+    });
+
+    it('should not warn about default assets if package assets is provided', async () => {
+      const packagingOptions: PackagingOptions = {
+        ...incompletePackagingOptions,
+        appManifest: 'C:\\app\\app.manifest',
+        packageAssets: 'C:\\assets',
+      } as any;
+      await verifyOptions(packagingOptions, { manifestIsSparsePackage: false } as any);
+      expect(log.warnAlways).not.toHaveBeenCalled();
     });
 
     it('should throw an error if package assets does not exist', async () => {
